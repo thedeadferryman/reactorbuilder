@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import sonar.reactorbuilder.ReactorBuilder;
 import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 
 import java.util.HashMap;
 import java.util.Map;

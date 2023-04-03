@@ -3,15 +3,11 @@ package sonar.reactorbuilder.common.files;
 import com.google.gson.*;
 import net.minecraft.util.JsonUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.logging.log4j.core.Core;
-import scala.util.parsing.json.JSON;
-import scala.util.parsing.json.JSONObject;
 import sonar.reactorbuilder.ReactorBuilder;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.common.reactors.templates.OverhaulFissionTemplate;
-import sonar.reactorbuilder.common.reactors.templates.UnderhaulSFRTemplate;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;

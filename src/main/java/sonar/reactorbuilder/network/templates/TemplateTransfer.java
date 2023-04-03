@@ -2,8 +2,6 @@ package sonar.reactorbuilder.network.templates;
 
 import net.minecraft.entity.player.EntityPlayer;
 import sonar.reactorbuilder.common.ReactorBuilderTileEntity;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntry;
-import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 
 import javax.annotation.Nullable;
@@ -22,24 +20,24 @@ public class TemplateTransfer {
     @Nullable
     public ReactorBuilderTileEntity dest;
 
-    public TemplateTransfer(AbstractTemplate template, TransferStage stage){
+    public TemplateTransfer(AbstractTemplate template, TransferStage stage) {
         this.template = template;
         this.stage = stage;
     }
 
-    public int getPayloadStart(){
+    public int getPayloadStart() {
         return index;
     }
 
-    public int getPayloadEnd(){
+    public int getPayloadEnd() {
         return Math.min(index + MAX_PAYLOAD, template.getIndexSize());
     }
 
-    public boolean requiresPayloadPacket(){
+    public boolean requiresPayloadPacket() {
         return index < template.getIndexSize();
     }
 
     public enum TransferStage {
-        REQUESTED, HEADER_SENT, HEADER_ACK, PAYLOAD_SENT, PAYLOAD_ACK, FINISHED;
+        REQUESTED, HEADER_SENT, HEADER_ACK, PAYLOAD_SENT, PAYLOAD_ACK, FINISHED
     }
 }

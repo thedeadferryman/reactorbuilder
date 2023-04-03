@@ -8,9 +8,14 @@ import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import sonar.reactorbuilder.ReactorBuilder;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
+import sonar.reactorbuilder.common.dictionary.entry.FluidEntry;
+import sonar.reactorbuilder.common.dictionary.entry.ItemEntry;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GlobalDictionary {
@@ -56,7 +61,21 @@ public class GlobalDictionary {
             ReactorBuilder.logger.error("Dictionary Error: Missing {} {}, Item: {}:{}:{}", type, globalName, modid, name, meta);
             return null;
         }
-        DictionaryEntry entry = new DictionaryEntry.ItemEntry(globalID++, globalName, type, Lists.newArrayList(new ItemStack(item, 1, meta)));
+
+        return addDictionaryItemEntry(
+                type, globalName,
+                Lists.newArrayList(new ItemStack(item, 1, meta)), ignoreMeta
+        );
+    }
+
+    public static DictionaryEntry addDictionaryItemEntry(
+            DictionaryEntryType type, String globalName,
+            List<ItemStack> stacks,
+            boolean ignoreMeta
+    ) {
+        DictionaryEntry entry = new ItemEntry(
+                globalID++, globalName, type, stacks
+        );
         GLOBAL_DICTIONARY.put(globalName, entry);
         componentTallies[type.ordinal()]++;
 
@@ -75,7 +94,7 @@ public class GlobalDictionary {
             return;
         }
 
-        GLOBAL_DICTIONARY.put(globalName, new DictionaryEntry.FluidEntry(globalID++, globalName, type, fluid));
+        GLOBAL_DICTIONARY.put(globalName, new FluidEntry(globalID++, globalName, type, fluid));
         componentTallies[type.ordinal()]++;
     }
 

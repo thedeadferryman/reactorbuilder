@@ -5,7 +5,7 @@ import net.minecraft.util.JsonUtils;
 import org.apache.commons.io.IOUtils;
 import sonar.reactorbuilder.ReactorBuilder;
 import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.common.reactors.templates.UnderhaulSFRTemplate;
 

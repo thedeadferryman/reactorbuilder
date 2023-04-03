@@ -1,5 +1,7 @@
 package sonar.reactorbuilder.common.dictionary;
 
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
+
 public class UnderhaulDictionary {
 
     public static final String NC_MODID = "nuclearcraft";

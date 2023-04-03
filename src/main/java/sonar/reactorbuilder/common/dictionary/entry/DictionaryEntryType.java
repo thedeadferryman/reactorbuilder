@@ -1,4 +1,4 @@
-package sonar.reactorbuilder.common.dictionary;
+package sonar.reactorbuilder.common.dictionary.entry;
 
 public enum DictionaryEntryType {
     UNDERHAUL_COMPONENT(0, false,"underhaul component"),

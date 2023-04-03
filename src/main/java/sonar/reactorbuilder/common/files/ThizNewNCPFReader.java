@@ -1,16 +1,13 @@
 package sonar.reactorbuilder.common.files;
 
 import com.google.common.collect.Lists;
-import net.minecraft.item.ItemStack;
 import simplelibrary.config2.Config;
 import simplelibrary.config2.ConfigList;
 import simplelibrary.config2.ConfigNumberList;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntry;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntryType;
-import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.DynamicItemDictionary;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.common.reactors.templates.OverhaulFissionTemplate;
-import sonar.reactorbuilder.util.MCUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -245,11 +242,12 @@ public class ThizNewNCPFReader extends AbstractFileReader {
 
         DictionaryEntry getEntryByIdAndType(int id, Type type) {
             String entryName = getEntryNameByIdAndType(id, type);
+
             if (entryName == null) {
                 return null;
             }
 
-            return getOrCreateEntry(entryName);
+            return DynamicItemDictionary.getOrCreateEntry(entryName);
         }
 
         String getEntryNameByIdAndType(int id, Type type) {
@@ -280,48 +278,6 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             }
 
             return list.get(id);
-        }
-
-        private DictionaryEntry getOrCreateEntry(String entryId) {
-            MCUtils.ItemLocator locator = MCUtils.parseItemLocator(entryId);
-
-            DictionaryEntry entry = tryGetExistingEntry(locator);
-
-            if (entry != null) {
-                return entry;
-            }
-
-            DictionaryEntryType type;
-
-            if (entryId.equals("nuclearcraft:fission_casing")) {
-                type = DictionaryEntryType.OVERHAUL_CASING_SOLID;
-            } else if (entryId.equals("nuclearcraft:fission_glass")) {
-                type = DictionaryEntryType.OVERHAUL_CASING_GLASS;
-            } else {
-                type = DictionaryEntryType.OVERHAUL_COMPONENT;
-            }
-
-            ItemStack found = MCUtils.getItemStack(entryId);
-
-            if (found == null) {
-                return null;
-            }
-
-
-            return GlobalDictionary.addDictionaryItemEntry(
-                    type, entryId, locator.modId, locator.itemId,
-                    locator.meta
-            );
-        }
-
-        private DictionaryEntry tryGetExistingEntry(MCUtils.ItemLocator locator) {
-            DictionaryEntry entry = GlobalDictionary.getComponentInfo(locator.itemId);
-
-            if (entry == null) {
-                return GlobalDictionary.getComponentInfo(locator.toString());
-            }
-
-            return entry;
         }
 
         enum Type {

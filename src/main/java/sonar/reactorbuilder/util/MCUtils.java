@@ -34,8 +34,10 @@ public class MCUtils {
     }
 
     public static ItemStack getItemStack(String id) {
-        ItemLocator locator = parseItemLocator(id);
+        return getItemStack(parseItemLocator(id));
+    }
 
+    public static ItemStack getItemStack(ItemLocator locator) {
         Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(locator.modId, locator.itemId));
 
         if (item == null) {

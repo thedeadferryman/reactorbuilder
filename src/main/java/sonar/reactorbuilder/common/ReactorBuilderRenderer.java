@@ -6,8 +6,7 @@ import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import sonar.reactorbuilder.common.ReactorBuilderTileEntity;
-import sonar.reactorbuilder.common.dictionary.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 
 public class ReactorBuilderRenderer extends TileEntitySpecialRenderer<ReactorBuilderTileEntity> {
 
