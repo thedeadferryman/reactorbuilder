@@ -21,7 +21,8 @@ jobs:
           java-version: '8'
           distribution: 'temurin'
 
-      - name: Prepare
+      - name: Prepare Gradle
+        run: chmod +x gradlew
 
       - name: Deobfuscate MC and dependencies
         run: ./gradlew setupCiWorkspace
