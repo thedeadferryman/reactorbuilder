@@ -10,9 +10,7 @@ import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import sonar.reactorbuilder.ReactorBuilder;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class GlobalDictionary {
@@ -23,49 +21,56 @@ public class GlobalDictionary {
     private static int globalID;
     private static int[] componentTallies;
 
-    public static void initDictionary(boolean isOverhaul){
+    public static void initDictionary(boolean isOverhaul) {
         GLOBAL_DICTIONARY = new LinkedHashMap<>();
         globalID = 0;
         componentTallies = new int[DictionaryEntryType.values().length];
 
         ///build dictionaries
-        if(isOverhaul){
+        if (isOverhaul) {
             OverhaulDictionary.buildDictionary();
-        }else{
+        } else {
             UnderhaulDictionary.buildDictionary();
         }
 
-        for(DictionaryEntryType type : DictionaryEntryType.values()){
-            if(type.isOverhaul == isOverhaul){
+        for (DictionaryEntryType type : DictionaryEntryType.values()) {
+            if (type.isOverhaul == isOverhaul) {
                 ReactorBuilder.logger.info("Loaded {} {} types", componentTallies[type.ordinal()], type.logName);
             }
         }
     }
 
-    public static void addDictionaryItemEntry(DictionaryEntryType type, String globalName, String modid, String name, int meta){
-        addDictionaryItemEntry(type, globalName, modid, name, meta, false);
+    public static DictionaryEntry addDictionaryItemEntry(DictionaryEntryType type, String globalName, String modid, String name, Integer meta) {
+        int inMeta = meta == null ? 0 : meta;
+        return addDictionaryItemEntry(type, globalName, modid, name, inMeta, meta == null);
     }
 
-    public static void addDictionaryItemEntry(DictionaryEntryType type, String globalName, String modid, String name, int meta, boolean ignoreMeta){
+    public static DictionaryEntry addDictionaryItemEntry(DictionaryEntryType type, String globalName, String modid, String name, int meta) {
+        return addDictionaryItemEntry(type, globalName, modid, name, meta, false);
+    }
+
+    public static DictionaryEntry addDictionaryItemEntry(DictionaryEntryType type, String globalName, String modid, String name, int meta, boolean ignoreMeta) {
         Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modid, name));
 
-        if(item == null){
+        if (item == null) {
             ReactorBuilder.logger.error("Dictionary Error: Missing {} {}, Item: {}:{}:{}", type, globalName, modid, name, meta);
-            return;
+            return null;
         }
         DictionaryEntry entry = new DictionaryEntry.ItemEntry(globalID++, globalName, type, Lists.newArrayList(new ItemStack(item, 1, meta)));
         GLOBAL_DICTIONARY.put(globalName, entry);
         componentTallies[type.ordinal()]++;
 
-        if(ignoreMeta){
+        if (ignoreMeta) {
             entry.ignoreMeta();
         }
+
+        return entry;
     }
 
-    public static void addDictionaryFluidEntry(DictionaryEntryType type, String globalName, String fluidName){
+    public static void addDictionaryFluidEntry(DictionaryEntryType type, String globalName, String fluidName) {
         FluidStack fluid = FluidRegistry.getFluidStack(fluidName, 1000);
 
-        if(fluid == null){
+        if (fluid == null) {
             ReactorBuilder.logger.error("Dictionary Error: Missing {} {}, Fluid: {}", type, globalName, fluidName);
             return;
         }
@@ -79,17 +84,20 @@ public class GlobalDictionary {
         return GLOBAL_DICTIONARY.get(globalName);
     }
 
-    /**this method should not be used when saving to NBT, as globalIDs might not always match.
+    /**
+     * this method should not be used when saving to NBT, as globalIDs might not always match.
+     *
      * @param globalID the temporary global id
-     * @return the component*/
+     * @return the component
+     */
     @Nullable
-    public static DictionaryEntry getComponentInfoFromID(int globalID){
-        if(globalID == -1){
+    public static DictionaryEntry getComponentInfoFromID(int globalID) {
+        if (globalID == -1) {
             return null;
         }
 
-        for(DictionaryEntry info : GLOBAL_DICTIONARY.values()){
-            if(info.globalID == globalID){
+        for (DictionaryEntry info : GLOBAL_DICTIONARY.values()) {
+            if (info.globalID == globalID) {
                 return info;
             }
         }
