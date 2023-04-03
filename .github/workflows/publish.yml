@@ -22,10 +22,25 @@ jobs:
           distribution: 'temurin'
 
       - name: Prepare Gradle
-        run: chmod +x gradlew
+        run: | 
+          chmod +x gradlew
+          VERSION=${GITHUB_REF#v*}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Deobfuscate MC and dependencies
         run: ./gradlew setupCiWorkspace
 
       - name: Build JARs
         run: ./gradlew build
+
+      - name: Publish mod file
+        uses: actions/upload-artifact@v3
+        with:
+          name: NC-ReactorBuilder-1.12.2-${{ env.VERSION }}.jar
+          path: build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}.jar
+
+      - name: Publish mod sources file
+        uses: actions/upload-artifact@v3
+        with:
+          name: NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar
+          path: build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar
