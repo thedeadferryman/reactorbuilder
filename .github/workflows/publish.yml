@@ -2,6 +2,7 @@ name: Assemble JAR
 
 on:
   push:
+    branches: [ "main" ]
     tags: [ "v**" ]
 
 permissions:
@@ -19,6 +20,8 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
+
+      - name: Prepare
 
       - name: Deobfuscate MC and dependencies
         run: ./gradlew setupCiWorkspace
