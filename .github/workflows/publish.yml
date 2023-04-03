@@ -1,0 +1,46 @@
+name: Assemble JAR
+
+on:
+  push:
+    tags: [ "v**" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Prepare Gradle
+        run: | 
+          chmod +x gradlew
+          VERSION=$(echo $GITHUB_REF | awk -F/ '{ print $3;}')
+          VERSION=${VERSION#v*}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Deobfuscate MC and dependencies
+        run: ./gradlew setupCiWorkspace
+
+      - name: Build JARs
+        run: ./gradlew build
+
+      - name: Publish mod file
+        uses: actions/upload-artifact@v3
+        with:
+          name: NC-ReactorBuilder-1.12.2-${{ env.VERSION }}.jar
+          path: build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}.jar
+
+      - name: Publish mod sources file
+        uses: actions/upload-artifact@v3
+        with:
+          name: NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar
+          path: build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar
