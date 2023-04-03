@@ -5,7 +5,7 @@ on:
     tags: [ "v**" ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -21,7 +21,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Prepare Gradle
-        run: | 
+        run: |
           chmod +x gradlew
           VERSION=$(echo $GITHUB_REF | awk -F/ '{ print $3;}')
           VERSION=${VERSION#v*}
@@ -44,3 +44,10 @@ jobs:
         with:
           name: NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar
           path: build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar
+
+      - name: Upload release artifacts
+        uses: Roang-zero1/github-upload-release-artifacts-action@v3
+        with:
+          args: "build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}-sources.jar build/libs/NC-ReactorBuilder-1.12.2-${{ env.VERSION }}.jar"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
