@@ -13,9 +13,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+import java.util.*;
 
 public class ThizNewNCPFReader extends AbstractFileReader {
 
@@ -201,15 +199,26 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             ConfigList list = config.getConfigList("blocks");
 
             for (Config block : list.<Config>iterable()) {
-                if (!block.hasProperty("name")) {
-                    blocks.add(null);
-                } else {
-                    blocks.add(block.getString("name"));
-                }
+                addBlockToList(blocks, block);
             }
         }
 
         return blocks;
+    }
+
+    private void addBlockToList(List<String> blocks, Config block) {
+        if (!block.hasProperty("name")) {
+            blocks.add(null);
+        } else {
+            blocks.add(block.getString("name"));
+        }
+        if (block.hasProperty("port")) {
+            Config port = block.getConfig("port");
+
+            if (port.hasProperty("name")) {
+                blocks.add(port.getString("name"));
+            }
+        }
     }
 
     private static class BlockRegistry {
@@ -223,21 +232,6 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             overhaulSFR.addAll(other.overhaulSFR);
             overhaulMSR.addAll(other.overhaulMSR);
             overhaulTurbine.addAll(other.overhaulTurbine);
-        }
-
-        void eachBlock(Consumer<String> handler) {
-            for (String item : underhaulSFR) {
-                handler.accept(item);
-            }
-            for (String item : overhaulSFR) {
-                handler.accept(item);
-            }
-            for (String item : overhaulMSR) {
-                handler.accept(item);
-            }
-            for (String item : overhaulTurbine) {
-                handler.accept(item);
-            }
         }
 
         DictionaryEntry getEntryByIdAndType(int id, Type type) {
