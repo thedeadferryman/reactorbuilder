@@ -8,25 +8,15 @@ import sonar.reactorbuilder.util.MCUtils;
 import java.util.List;
 
 public class DynamicItemDictionary {
-    public static DictionaryEntry getOrCreateEntry(String entryId) {
-        return getOrCreateEntry(MCUtils.parseItemLocator(entryId));
+    public static DictionaryEntry getOrCreateEntry(DictionaryEntryType type, String entryId) {
+        return getOrCreateEntry(type, MCUtils.parseItemLocator(entryId));
     }
 
-    public static DictionaryEntry getOrCreateEntry(MCUtils.ItemLocator locator) {
+    public static DictionaryEntry getOrCreateEntry(DictionaryEntryType type, MCUtils.ItemLocator locator) {
         DictionaryEntry entry = tryGetExistingEntry(locator);
 
         if (entry != null) {
             return entry;
-        }
-
-        DictionaryEntryType type;
-
-        if (locator.itemId.equals("fission_casing")) {
-            type = DictionaryEntryType.OVERHAUL_CASING_SOLID;
-        } else if (locator.itemId.equals("fission_glass")) {
-            type = DictionaryEntryType.OVERHAUL_CASING_GLASS;
-        } else {
-            type = DictionaryEntryType.OVERHAUL_COMPONENT;
         }
 
         ItemStack found = MCUtils.getItemStack(locator);

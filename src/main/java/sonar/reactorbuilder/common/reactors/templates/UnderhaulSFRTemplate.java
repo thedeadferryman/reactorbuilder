@@ -70,7 +70,7 @@ public class UnderhaulSFRTemplate extends AbstractTemplate {
     public int getBuildPassTotal(int buildPass) {
         switch (buildPass){
             case 0: return totalSolidComponents;
-            case 1: return totalSolidCasing + totalGlassCasing;
+            case 1: return totalFrameCasing + totalFaceCasing;
             case 2: return edges == null ? 0 : totalEdges;
         }
         return 0;
@@ -102,10 +102,10 @@ public class UnderhaulSFRTemplate extends AbstractTemplate {
     @Override
     public void updateAdditionalInfo(){
         super.updateAdditionalInfo();
-        if(totalSolidCasing != 0)
-            required.put(casingSolid, totalSolidCasing);
-        if(totalGlassCasing != 0)
-            required.put(casingGlass, totalGlassCasing);
+        if(totalFrameCasing != 0)
+            required.put(casingSolid, totalFrameCasing);
+        if(totalFaceCasing != 0)
+            required.put(casingGlass, totalFaceCasing);
 
         edges = edgeItem.isEmpty() ? null : DictionaryEntry.makeEdgeComponent(edgeItem);
 
@@ -124,7 +124,7 @@ public class UnderhaulSFRTemplate extends AbstractTemplate {
             statsMap.put(Translate.TEMPLATE_FUEL_TYPE.t(), fuel.getItemStack().getDisplayName());
 
         statsMap.put(Translate.TEMPLATE_COMPONENTS.t(), String.valueOf(totalSolidComponents));
-        statsMap.put(Translate.TEMPLATE_CASING.t(), String.valueOf(totalSolidCasing + totalGlassCasing));
+        statsMap.put(Translate.TEMPLATE_CASING.t(), String.valueOf(totalFrameCasing + totalFaceCasing));
         statsMap.put(Translate.TEMPLATE_EDGES.t(), String.valueOf(totalEdges));
     }
 

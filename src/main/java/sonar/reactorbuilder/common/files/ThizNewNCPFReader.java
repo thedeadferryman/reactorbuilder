@@ -4,16 +4,18 @@ import com.google.common.collect.Lists;
 import simplelibrary.config2.Config;
 import simplelibrary.config2.ConfigList;
 import simplelibrary.config2.ConfigNumberList;
-import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.DynamicItemDictionary;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
-import sonar.reactorbuilder.common.reactors.templates.OverhaulFissionTemplate;
+import sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul.CasingAwareOverhaulFissionSFR;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ThizNewNCPFReader extends AbstractFileReader {
 
@@ -95,7 +97,7 @@ public class ThizNewNCPFReader extends AbstractFileReader {
 
         ConfigNumberList blockMap = data.getConfigNumberList("blocks");
 
-        OverhaulFissionTemplate.SFR template = new OverhaulFissionTemplate.SFR(
+        AbstractTemplate template = new CasingAwareOverhaulFissionSFR(
                 filename, Math.toIntExact(dims.x), Math.toIntExact(dims.y), Math.toIntExact(dims.z)
         );
 
@@ -104,17 +106,12 @@ public class ThizNewNCPFReader extends AbstractFileReader {
         for (int x = 0; x <= (dims.x + 1); x++) {
             for (int y = 0; y <= (dims.y + 1); y++) {
                 for (int z = 0; z <= (dims.z + 1); z++) {
-                    if (x < 1 || y < 1 || z < 1 || x >= (dims.x + 1) || y >= (dims.y + 1) || z >= (dims.z + 1)) {
-                        current += 1;
-                        continue;
-                    }
-
                     int blockId = Math.toIntExact(blockMap.get(current));
 
-                    DictionaryEntry entry = blockRegistry.getEntryByIdAndType(blockId, BlockRegistry.Type.OverhaulSFR);
+                    DictionaryEntry entry = blockRegistry.getEntryByIdAndType(blockId, StructureType.OverhaulSFR);
 
                     if (entry != null) {
-                        template.setComponentInfo(entry, x - 1, y - 1, z - 1);
+                        template.setComponentInfo(entry, x, y, z);
                     }
 
                     current += 1;
@@ -168,16 +165,20 @@ public class ThizNewNCPFReader extends AbstractFileReader {
         BlockRegistry blocks = new BlockRegistry();
 
         blocks.underhaulSFR = fetchBlocksIn(
-                fetchConfigPathSafe(config, "underhaul", "fissionSFR")
+                fetchConfigPathSafe(config, "underhaul", "fissionSFR"),
+                StructureType.UnderhaulSFR
         );
         blocks.overhaulSFR = fetchBlocksIn(
-                fetchConfigPathSafe(config, "overhaul", "fissionSFR")
+                fetchConfigPathSafe(config, "overhaul", "fissionSFR"),
+                StructureType.OverhaulSFR
         );
         blocks.overhaulMSR = fetchBlocksIn(
-                fetchConfigPathSafe(config, "overhaul", "fissionMSR")
+                fetchConfigPathSafe(config, "overhaul", "fissionMSR"),
+                StructureType.OverhaulMSR
         );
         blocks.overhaulTurbine = fetchBlocksIn(
-                fetchConfigPathSafe(config, "overhaul", "turbine")
+                fetchConfigPathSafe(config, "overhaul", "turbine"),
+                StructureType.OverhaulTurbine
         );
 
         if (!config.getBoolean("addon") && config.hasProperty("addons")) {
@@ -192,40 +193,106 @@ public class ThizNewNCPFReader extends AbstractFileReader {
         return blocks;
     }
 
-    private List<String> fetchBlocksIn(Config config) {
-        List<String> blocks = new ArrayList<>();
+    private List<DictionaryEntry> fetchBlocksIn(Config config, StructureType type) {
+        List<DictionaryEntry> blocks = new ArrayList<>();
 
         if (config != null && config.hasProperty("blocks")) {
             ConfigList list = config.getConfigList("blocks");
 
             for (Config block : list.<Config>iterable()) {
-                addBlockToList(blocks, block);
+                addBlockToList(blocks, block, type);
             }
         }
 
         return blocks;
     }
 
-    private void addBlockToList(List<String> blocks, Config block) {
+    private void addBlockToList(List<DictionaryEntry> blocks,
+                                Config block,
+                                StructureType type) {
+        addBlockToList(blocks, block, type, null);
+    }
+
+    private void addBlockToList(
+            List<DictionaryEntry> blocks,
+            Config block,
+            StructureType type,
+            DictionaryEntryType forceType
+    ) {
         if (!block.hasProperty("name")) {
             blocks.add(null);
         } else {
-            blocks.add(block.getString("name"));
+            blocks.add(blockEntryFromConfig(block, type, forceType));
         }
         if (block.hasProperty("port")) {
-            Config port = block.getConfig("port");
+            addBlockToList(
+                    blocks,
+                    block.getConfig("port"),
+                    type,
+                    DictionaryEntryType.OVERHAUL_CASING_FACE
+            );
+        }
+    }
 
-            if (port.hasProperty("name")) {
-                blocks.add(port.getString("name"));
+    private DictionaryEntry blockEntryFromConfig(
+            Config block,
+            StructureType structureType,
+            DictionaryEntryType forceType
+    ) {
+        if (!block.hasProperty("name")) {
+            return null;
+        }
+
+        String name = block.getString("name");
+
+        DictionaryEntryType blockType = forceType;
+
+        if (structureType.isOverhaul && blockType == null) {
+            blockType = overhaulSFRBlockTypeFromConfig(block, structureType);
+        }
+
+        if (blockType == null) {
+            return null;
+        }
+
+        return DynamicItemDictionary.getOrCreateEntry(
+                blockType, name
+        );
+    }
+
+    private DictionaryEntryType overhaulSFRBlockTypeFromConfig(Config block, StructureType type) {
+        if (type != StructureType.OverhaulSFR) {
+            return null;
+        }
+
+        if (block.hasProperty("casing") && block.getBoolean("casing")) {
+            if (block.hasProperty("casingEdge") && block.getBoolean("casingEdge")) {
+                return DictionaryEntryType.OVERHAUL_CASING_FRAME;
             }
+            return DictionaryEntryType.OVERHAUL_CASING_FACE;
+        }
+
+        return DictionaryEntryType.OVERHAUL_COMPONENT;
+    }
+
+    enum StructureType {
+        UnderhaulSFR(false),
+        OverhaulSFR(true),
+        OverhaulMSR(true),
+        OverhaulTurbine(true);
+
+        public boolean isOverhaul;
+
+        StructureType(boolean isOverhaul) {
+            this.isOverhaul = isOverhaul;
         }
     }
 
     private static class BlockRegistry {
-        public List<String> underhaulSFR = new ArrayList<>();
-        public List<String> overhaulSFR = new ArrayList<>();
-        public List<String> overhaulMSR = new ArrayList<>();
-        public List<String> overhaulTurbine = new ArrayList<>();
+        public List<DictionaryEntry> underhaulSFR = new ArrayList<>();
+        public List<DictionaryEntry> overhaulSFR = new ArrayList<>();
+        public List<DictionaryEntry> overhaulMSR = new ArrayList<>();
+        public List<DictionaryEntry> overhaulTurbine = new ArrayList<>();
 
         void merge(BlockRegistry other) {
             underhaulSFR.addAll(other.underhaulSFR);
@@ -234,24 +301,14 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             overhaulTurbine.addAll(other.overhaulTurbine);
         }
 
-        DictionaryEntry getEntryByIdAndType(int id, Type type) {
-            String entryName = getEntryNameByIdAndType(id, type);
-
-            if (entryName == null) {
-                return null;
-            }
-
-            return DynamicItemDictionary.getOrCreateEntry(entryName);
-        }
-
-        String getEntryNameByIdAndType(int id, Type type) {
+        DictionaryEntry getEntryByIdAndType(int id, StructureType type) {
             return getSafeFromList(
                     pickList(type),
                     id - 1
             );
         }
 
-        private List<String> pickList(Type type) {
+        private List<DictionaryEntry> pickList(StructureType type) {
             switch (type) {
                 case UnderhaulSFR:
                     return underhaulSFR;
@@ -266,19 +323,12 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             }
         }
 
-        private String getSafeFromList(List<String> list, int id) {
+        private DictionaryEntry getSafeFromList(List<DictionaryEntry> list, int id) {
             if (id >= list.size() || id < 0) {
                 return null;
             }
 
             return list.get(id);
-        }
-
-        enum Type {
-            UnderhaulSFR,
-            OverhaulSFR,
-            OverhaulMSR,
-            OverhaulTurbine,
         }
     }
 

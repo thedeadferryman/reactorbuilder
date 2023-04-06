@@ -35,28 +35,27 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     public String recipeNameList;
 
 
-    public OverhaulFissionTemplate(){}
+    public OverhaulFissionTemplate() {
+    }
 
     public OverhaulFissionTemplate(String fileName, int xSize, int ySize, int zSize) {
         super(fileName, xSize, ySize, zSize);
     }
 
 
-
     //// GENERAL \\\\
 
     @Nullable
     @Override
-    public DictionaryEntry getComponent(int x, int y, int z){
-        if(isComponent(x, y, z)){
+    public DictionaryEntry getComponent(int x, int y, int z) {
+        if (isComponent(x, y, z)) {
             return blocks[x][y][z];
         }
-        if(isCasing(x, y, z) || isEdge(x, y, z)){
+        if (isCasing(x, y, z) || isEdge(x, y, z)) {
             return isCasingGlass(x, y, z) ? casingGlass : casingSolid;
         }
         return null;
     }
-
 
 
     //// BUILDING \\\\
@@ -73,24 +72,29 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
 
     @Override
     public int getBuildPassTotal(int buildPass) {
-        switch (buildPass){
-            case 0: return totalSolidComponents;
-            case 1: return totalRecipes;
-            case 2: return totalGlassCasing + totalSolidCasing + totalEdges;
+        switch (buildPass) {
+            case 0:
+                return totalSolidComponents;
+            case 1:
+                return totalRecipes;
+            case 2:
+                return totalFaceCasing + totalFrameCasing + totalEdges;
         }
         return 0;
     }
 
     @Override
     public boolean canPlaceThisPass(int buildPass, int x, int y, int z, DictionaryEntry info) {
-        switch (buildPass){
-            case 0: return info.entryType == DictionaryEntryType.OVERHAUL_COMPONENT;
-            case 1: return false;
-            case 2: return info.entryType == DictionaryEntryType.OVERHAUL_CASING_SOLID ||info.entryType == DictionaryEntryType.OVERHAUL_CASING_GLASS;
+        switch (buildPass) {
+            case 0:
+                return info.entryType == DictionaryEntryType.OVERHAUL_COMPONENT;
+            case 1:
+                return false;
+            case 2:
+                return info.entryType == DictionaryEntryType.OVERHAUL_CASING_FRAME || info.entryType == DictionaryEntryType.OVERHAUL_CASING_FACE;
         }
         return false;
     }
-
 
 
     //// CUSTOM PASS \\\\
@@ -103,42 +107,42 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     @Override
     public void tickCustomPass(ReactorBuilderTileEntity builder, int buildPass) {
         super.tickCustomPass(builder, buildPass);
-        if(buildPass == 1){ //set item & fluid filters
+        if (buildPass == 1) { //set item & fluid filters
             int index = 0;
-            for(Map.Entry<DictionaryEntry, List<Integer>> map : recipeToIndexMap.entrySet()){
+            for (Map.Entry<DictionaryEntry, List<Integer>> map : recipeToIndexMap.entrySet()) {
                 DictionaryEntry input = map.getKey();
-                if(input.entryType == DictionaryEntryType.OVERHAUL_FUEL || input.entryType == DictionaryEntryType.OVERHAUL_LIQUID_FUEL){
-                    if(fuels.size() == 1){
+                if (input.entryType == DictionaryEntryType.OVERHAUL_FUEL || input.entryType == DictionaryEntryType.OVERHAUL_LIQUID_FUEL) {
+                    if (fuels.size() == 1) {
                         index += map.getValue().size();
                         builder.passProgress[buildPass] = index;
                         continue;
                     }
                 }
-                if(input.entryType == DictionaryEntryType.IRRADIATOR_RECIPE){
-                    if(recipes.size() == 1){
+                if (input.entryType == DictionaryEntryType.IRRADIATOR_RECIPE) {
+                    if (recipes.size() == 1) {
                         index += map.getValue().size();
                         builder.passProgress[buildPass] = index;
                         continue;
                     }
                 }
 
-                for(Integer i : map.getValue()){
+                for (Integer i : map.getValue()) {
                     index++;
-                    if(index > builder.passProgress[buildPass]){
+                    if (index > builder.passProgress[buildPass]) {
                         builder.passProgress[buildPass]++;
                         BlockPos pos = getPosFromIndexLoop(i);
                         DictionaryEntry info = getComponent(pos.getX(), pos.getY(), pos.getZ());
                         BlockPos nextPos = builder.getStartPos().add(pos);
-                        if(info == null || !builder.isMatchingComponentAtPos(info, nextPos)){
+                        if (info == null || !builder.isMatchingComponentAtPos(info, nextPos)) {
                             continue;
                         }
-                        if(RBConfig.allowFuelCellFiltering && info.globalName.equals("fuel_cell")){
+                        if (RBConfig.allowFuelCellFiltering && info.globalName.equals("fuel_cell")) {
                             TileEntity tile = builder.getWorld().getTileEntity(nextPos);
                             OverhaulHelper.setItemStackFilter(tile, input.getItemStack());
-                        }else if(RBConfig.allowIrradiatorFiltering && info.globalName.equals("neutron_irradiator")){
+                        } else if (RBConfig.allowIrradiatorFiltering && info.globalName.equals("neutron_irradiator")) {
                             TileEntity tile = builder.getWorld().getTileEntity(nextPos);
                             OverhaulHelper.setItemStackFilter(tile, input.getItemStack());
-                        }else if(RBConfig.allowFuelVesselFiltering && info.globalName.equals("fuel_vessel")){
+                        } else if (RBConfig.allowFuelVesselFiltering && info.globalName.equals("fuel_vessel")) {
                             TileEntity tile = builder.getWorld().getTileEntity(nextPos);
                             OverhaulHelper.setFluidStackFilter(tile, input.getFluidStack());
                         }
@@ -147,7 +151,6 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
             }
         }
     }
-
 
 
     //// INFO \\\\
@@ -163,24 +166,24 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     }
 
     @Override
-    public void updateAdditionalInfo(){
+    public void updateAdditionalInfo() {
         super.updateAdditionalInfo();
-        if(totalSolidCasing + totalEdges != 0)
-            required.put(casingSolid, totalSolidCasing + totalEdges);
-        if(totalGlassCasing != 0)
-            required.put(casingGlass, totalGlassCasing);
+        if (totalFrameCasing + totalEdges != 0)
+            required.put(casingSolid, totalFrameCasing + totalEdges);
+        if (totalFaceCasing != 0)
+            required.put(casingGlass, totalFaceCasing);
 
         totalRecipes = 0;
 
         fuels = new ArrayList<>();
         recipes = new ArrayList<>();
 
-        for(Map.Entry<DictionaryEntry, List<Integer>> map : recipeToIndexMap.entrySet()){
-            if(map.getKey().entryType == DictionaryEntryType.OVERHAUL_FUEL || map.getKey().entryType == DictionaryEntryType.OVERHAUL_LIQUID_FUEL)
+        for (Map.Entry<DictionaryEntry, List<Integer>> map : recipeToIndexMap.entrySet()) {
+            if (map.getKey().entryType == DictionaryEntryType.OVERHAUL_FUEL || map.getKey().entryType == DictionaryEntryType.OVERHAUL_LIQUID_FUEL)
                 fuels.add(map.getKey());
-            if(map.getKey().entryType == DictionaryEntryType.IRRADIATOR_RECIPE)
+            if (map.getKey().entryType == DictionaryEntryType.IRRADIATOR_RECIPE)
                 recipes.add(map.getKey());
-            totalRecipes+=map.getValue().size();
+            totalRecipes += map.getValue().size();
         }
 
         fuelNameList = DictionaryEntry.toStringList(fuels);
@@ -191,15 +194,14 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     public void getStats(Map<String, String> statsMap) {
         statsMap.put(Translate.TEMPLATE_FILE_NAME.t(), fileName);
         statsMap.put(Translate.TEMPLATE_REACTOR_TYPE.t(), getTemplateType().fileType);
-        statsMap.put(Translate.TEMPLATE_DIMENSIONS.t(), xSize + " x " + ySize + " x "  + zSize);
+        statsMap.put(Translate.TEMPLATE_DIMENSIONS.t(), xSize + " x " + ySize + " x " + zSize);
 
         statsMap.put(Translate.TEMPLATE_FUEL_TYPES.t(), fuelNameList);
         statsMap.put(Translate.TEMPLATE_IRRADIATOR_FILTERS.t(), recipeNameList);
 
         statsMap.put(Translate.TEMPLATE_COMPONENTS.t(), String.valueOf(totalSolidComponents));
-        statsMap.put(Translate.CASING_CONFIG.t(), String.valueOf(totalSolidCasing + totalGlassCasing + totalEdges));
+        statsMap.put(Translate.CASING_CONFIG.t(), String.valueOf(totalFrameCasing + totalFaceCasing + totalEdges));
     }
-
 
 
     //// SAVING & LOADING \\\\
@@ -207,12 +209,12 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     @Override
     public void readFromNBT(NBTTagCompound compound, boolean array) {
         super.readFromNBT(compound, array);
-        if(!array){ //recipe maps can easily become too big for ByteBufs - TODO - WE MUST SEND THIS STUFF!!!
+        if (!array) { //recipe maps can easily become too big for ByteBufs - TODO - WE MUST SEND THIS STUFF!!!
             return;
         }
         recipeToIndexMap.clear();
         NBTTagList fuelMapList = compound.getTagList("recipeMap", Constants.NBT.TAG_COMPOUND);
-        for(int i = 0; i < fuelMapList.tagCount(); i ++){
+        for (int i = 0; i < fuelMapList.tagCount(); i++) {
             NBTTagCompound fuelCompound = fuelMapList.getCompoundTagAt(i);
             DictionaryEntry fuelInfo = DictionaryEntry.readFromNBTSafely(fuelCompound);
             int[] indexes = fuelCompound.getIntArray("indexes");
@@ -224,11 +226,11 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     @Override
     public void writeToNBT(NBTTagCompound compound, boolean array) {
         super.writeToNBT(compound, array);
-        if(!array){
+        if (!array) {
             return;
         }
         NBTTagList fuelMapList = new NBTTagList();
-        for(Map.Entry<DictionaryEntry, List<Integer>> entry : recipeToIndexMap.entrySet()){
+        for (Map.Entry<DictionaryEntry, List<Integer>> entry : recipeToIndexMap.entrySet()) {
             NBTTagCompound fuelCompound = new NBTTagCompound();
             DictionaryEntry.writeToNBTSafely(fuelCompound, entry.getKey());
             int[] indexes = entry.getValue().stream().mapToInt(i -> i).toArray();
@@ -239,15 +241,15 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     }
 
     @Override
-    public void readHeaderFromBuf(ByteBuf buf){
+    public void readHeaderFromBuf(ByteBuf buf) {
         super.readHeaderFromBuf(buf);
         recipeToIndexMap.clear();
         int mapSize = buf.readInt();
-        for(int f = 0; f < mapSize; f++){
+        for (int f = 0; f < mapSize; f++) {
             DictionaryEntry fuel = GlobalDictionary.getComponentInfoFromID(buf.readShort());
             List<Integer> indexes = new ArrayList<>();
             int indexSize = buf.readInt();
-            for(int i = 0; i < indexSize; i++){
+            for (int i = 0; i < indexSize; i++) {
                 indexes.add(buf.readInt());
             }
             recipeToIndexMap.putIfAbsent(fuel, indexes);
@@ -255,19 +257,19 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
     }
 
     @Override
-    public void writeHeaderToBuf(ByteBuf buf){
+    public void writeHeaderToBuf(ByteBuf buf) {
         super.writeHeaderToBuf(buf);
         buf.writeInt(recipeToIndexMap.size());
-        for(Map.Entry<DictionaryEntry, List<Integer>> entry : recipeToIndexMap.entrySet()){
+        for (Map.Entry<DictionaryEntry, List<Integer>> entry : recipeToIndexMap.entrySet()) {
             buf.writeShort(entry.getKey().globalID);
             buf.writeInt(entry.getValue().size());
-            for(Integer i : entry.getValue()){
+            for (Integer i : entry.getValue()) {
                 buf.writeInt(i);
             }
         }
     }
 
-    public static class SFR extends OverhaulFissionTemplate{
+    public static class SFR extends OverhaulFissionTemplate {
 
         public SFR() {
             super();
@@ -284,7 +286,7 @@ public abstract class OverhaulFissionTemplate extends AbstractTemplate {
 
     }
 
-    public static class MSR extends OverhaulFissionTemplate{
+    public static class MSR extends OverhaulFissionTemplate {
 
         public MSR() {
             super();

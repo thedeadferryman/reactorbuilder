@@ -20,7 +20,8 @@ public class PacketTemplateUploadHeader implements IMessage {
     public AbstractTemplate template;
     public BlockPos dest;
 
-    public PacketTemplateUploadHeader() {}
+    public PacketTemplateUploadHeader() {
+    }
 
     public PacketTemplateUploadHeader(AbstractTemplate template, @Nullable BlockPos dest) {
         this.template = template;
@@ -31,7 +32,7 @@ public class PacketTemplateUploadHeader implements IMessage {
     public void toBytes(ByteBuf buf) {
         AbstractTemplate.writeTemplateHeaderToByteBuf(buf, template);
         buf.writeBoolean(dest != null);
-        if(dest != null){
+        if (dest != null) {
             buf.writeLong(dest.toLong());
         }
     }
@@ -39,7 +40,7 @@ public class PacketTemplateUploadHeader implements IMessage {
     @Override
     public void fromBytes(ByteBuf buf) {
         template = AbstractTemplate.readTemplateHeaderFromByteBuf(buf);
-        if(buf.readBoolean()){
+        if (buf.readBoolean()) {
             dest = BlockPos.fromLong(buf.readLong());
         }
     }
@@ -55,9 +56,9 @@ public class PacketTemplateUploadHeader implements IMessage {
             EntityPlayer player = ReactorBuilder.proxy.getPlayer(ctx);
 
             ReactorBuilderTileEntity builder = null;
-            if(message.dest != null){
+            if (message.dest != null) {
                 TileEntity tileEntity = player.getEntityWorld().getTileEntity(message.dest);
-                if(tileEntity instanceof ReactorBuilderTileEntity){
+                if (tileEntity instanceof ReactorBuilderTileEntity) {
                     builder = (ReactorBuilderTileEntity) tileEntity;
                 }
             }

@@ -115,11 +115,11 @@ public class OverhaulDictionary {
         GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_COMPONENT, "silver_coil", NC_MODID, "turbine_dynamo_coil", 5);
 
         //// CASINGS \\\\
-        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_SOLID, "sfr_casing", NC_MODID, "fission_casing", 0);
-        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_GLASS, "sfr_glass", NC_MODID, "fission_glass", 0);
+        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_FRAME, "sfr_casing", NC_MODID, "fission_casing", 0);
+        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_FACE, "sfr_glass", NC_MODID, "fission_glass", 0);
 
-        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_SOLID, "turbine_casing", NC_MODID, "turbine_casing", 0);
-        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_GLASS, "turbine_glass", NC_MODID, "turbine_glass", 0);
+        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_FRAME, "turbine_casing", NC_MODID, "turbine_casing", 0);
+        GlobalDictionary.addDictionaryItemEntry(DictionaryEntryType.OVERHAUL_CASING_FACE, "turbine_glass", NC_MODID, "turbine_glass", 0);
 
 
 

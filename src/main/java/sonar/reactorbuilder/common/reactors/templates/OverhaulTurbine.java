@@ -125,7 +125,7 @@ public class OverhaulTurbine extends AbstractTemplate {
             case 2:
                 return totalBlades;
             case 3:
-                return totalGlassCasing + totalSolidCasing;
+                return totalFaceCasing + totalFrameCasing;
         }
         return 1;
     }
@@ -189,8 +189,8 @@ public class OverhaulTurbine extends AbstractTemplate {
         totalCoils = 0;
         totalShafts = 0;
         totalBlades = 0;
-        totalGlassCasing = 0;
-        totalSolidCasing = 0;
+        totalFaceCasing = 0;
+        totalFrameCasing = 0;
         for(int x = -1; x <= xSize; x ++){
             for(int y = -1; y <= ySize; y ++){
                 for(int z = -1; z <= zSize; z ++){
@@ -207,18 +207,18 @@ public class OverhaulTurbine extends AbstractTemplate {
                         }
                     }else if(isCasing(x, y, z)){
                         if(isCasingGlass(x, y, z)){
-                            totalGlassCasing++;
+                            totalFaceCasing++;
                         }else{
-                            totalSolidCasing++;
+                            totalFrameCasing++;
                         }
                     }
                 }
             }
         }
-        if(totalSolidCasing != 0)
-            required.put(casingSolid, totalSolidCasing);
-        if(totalGlassCasing != 0)
-            required.put(casingGlass, totalGlassCasing);
+        if(totalFrameCasing != 0)
+            required.put(casingSolid, totalFrameCasing);
+        if(totalFaceCasing != 0)
+            required.put(casingGlass, totalFaceCasing);
     }
 
     @Override
@@ -228,7 +228,7 @@ public class OverhaulTurbine extends AbstractTemplate {
         statsMap.put(Translate.TEMPLATE_DIMENSIONS.t(), xSize + " x " + ySize + " x "  + zSize);
 
         statsMap.put(Translate.TEMPLATE_COMPONENTS.t(), String.valueOf(totalSolidComponents));
-        statsMap.put(Translate.TEMPLATE_CASING.t(), String.valueOf(totalSolidCasing + totalGlassCasing));
+        statsMap.put(Translate.TEMPLATE_CASING.t(), String.valueOf(totalFrameCasing + totalFaceCasing));
     }
 
 

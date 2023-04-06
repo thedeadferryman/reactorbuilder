@@ -4,12 +4,15 @@ import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.common.reactors.templates.OverhaulFissionTemplate;
 import sonar.reactorbuilder.common.reactors.templates.OverhaulTurbine;
 import sonar.reactorbuilder.common.reactors.templates.UnderhaulSFRTemplate;
+import sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul.CasingAwareOverhaulFissionSFR;
 
 public enum TemplateType {
-    UNDERHAUL_SFR(false,"Underhaul SFR", UnderhaulSFRTemplate::new),
-    OVERHAUL_SFR(true,"Overhaul SFR", OverhaulFissionTemplate.SFR::new),
-    OVERHAUL_MSR(true,"Overhaul MSR", OverhaulFissionTemplate.MSR::new),
-    OVERHAUL_TURBINE(true,"Overhaul Turbine", OverhaulTurbine::new);
+    UNDERHAUL_SFR(false, "Underhaul SFR", UnderhaulSFRTemplate::new),
+    OVERHAUL_SFR(true, "Overhaul SFR", OverhaulFissionTemplate.SFR::new),
+    OVERHAUL_MSR(true, "Overhaul MSR", OverhaulFissionTemplate.MSR::new),
+    OVERHAUL_TURBINE(true, "Overhaul Turbine", OverhaulTurbine::new),
+
+    CASINGAWARE_OVERHAUL_SFR(true, "Casing-Aware Overhaul SFR", CasingAwareOverhaulFissionSFR::new);
 
     public boolean overhaul;
     public String fileType;
@@ -21,7 +24,7 @@ public enum TemplateType {
         this.creator = creator;
     }
 
-    public interface IReactorProvider{
+    public interface IReactorProvider {
 
         AbstractTemplate create();
 

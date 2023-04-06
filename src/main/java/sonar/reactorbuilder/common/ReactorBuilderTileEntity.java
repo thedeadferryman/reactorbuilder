@@ -406,7 +406,7 @@ public class ReactorBuilderTileEntity extends TileEntity implements ITickable {
         }
 
         if (isDestroying) {
-            return template.totalSolidComponents + template.totalEdges + template.totalSolidCasing + template.totalGlassCasing;
+            return template.totalSolidComponents + template.totalEdges + template.totalFrameCasing + template.totalFaceCasing;
         }
 
         int total = 0;

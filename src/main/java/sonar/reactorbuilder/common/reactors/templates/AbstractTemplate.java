@@ -9,13 +9,16 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import sonar.reactorbuilder.ReactorBuilder;
 import sonar.reactorbuilder.common.ReactorBuilderTileEntity;
-import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.reactors.TemplateType;
+import sonar.reactorbuilder.util.TernaryOperator;
 import sonar.reactorbuilder.util.Util;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public abstract class AbstractTemplate {
@@ -31,8 +34,8 @@ public abstract class AbstractTemplate {
     public Map<DictionaryEntry, Integer> required = new HashMap<>();
     public int totalSolidComponents;
     public int totalAirComponents;
-    public int totalSolidCasing;
-    public int totalGlassCasing;
+    public int totalFrameCasing;
+    public int totalFaceCasing;
     public int totalEdges;
 
     ////client render cache
@@ -55,7 +58,7 @@ public abstract class AbstractTemplate {
         this.xSize = xSize;
         this.ySize = ySize;
         this.zSize = zSize;
-        this.blocks = new DictionaryEntry[xSize][ySize][zSize];
+        this.blocks = initializeBlockData();
     }
 
     @Nullable
@@ -216,8 +219,8 @@ public abstract class AbstractTemplate {
         required = new HashMap<>();
         totalSolidComponents = 0;
         totalAirComponents = 0;
-        totalSolidCasing = 0;
-        totalGlassCasing = 0;
+        totalFrameCasing = 0;
+        totalFaceCasing = 0;
         totalEdges = 0;
         for (int x = getExtStart().getX(); x <= getExtEnd().getX(); x++) {
             for (int y = getExtStart().getY(); y <= getExtEnd().getY(); y++) {
@@ -233,9 +236,9 @@ public abstract class AbstractTemplate {
                         }
                     } else if (isCasing(x, y, z)) {
                         if (isCasingGlass(x, y, z)) {
-                            totalGlassCasing++;
+                            totalFaceCasing++;
                         } else {
-                            totalSolidCasing++;
+                            totalFrameCasing++;
                         }
                     } else if (isEdge(x, y, z)) {
                         totalEdges++;
@@ -308,19 +311,34 @@ public abstract class AbstractTemplate {
         return (xPos * ySize * zSize) + (yPos * zSize) + zPos;
     }
 
-    public BlockPos getPosFromIndexLoop(int index) {
-        int i = 0;
+    public void forEachPos(TernaryOperator<Integer, Integer, Integer, Boolean> handler) {
         for (int x = 0; x < xSize; x++) {
             for (int y = 0; y < ySize; y++) {
                 for (int z = 0; z < zSize; z++) {
-                    if (i == index) {
-                        return new BlockPos(x, y, z);
+                    if (!handler.consume(x, y, z)) {
+                        break;
                     }
-                    i++;
                 }
             }
         }
-        return null;
+    }
+
+    public BlockPos getPosFromIndexLoop(int index) {
+        AtomicInteger i = new AtomicInteger(0);
+        AtomicReference<BlockPos> blockPos = new AtomicReference<>();
+
+        forEachPos((x, y, z) -> {
+            if (i.get() == index) {
+                blockPos.set(new BlockPos(x, y, z));
+                return false;
+            }
+
+            i.incrementAndGet();
+
+            return true;
+        });
+
+        return blockPos.get();
     }
 
     public BlockPos getPosFromIndexCalc(int index) {
@@ -357,19 +375,20 @@ public abstract class AbstractTemplate {
             return;
         }
 
-        blocks = new DictionaryEntry[xSize][ySize][zSize];
+        blocks = initializeBlockData();
 
         ///block array
         int[] blockArray = compound.getIntArray("blocks");
-        int count = 0;
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    blocks[x][y][z] = refs.get(blockArray[count]);
-                    count++;
-                }
-            }
-        }
+
+        AtomicInteger count = new AtomicInteger(0);
+
+        forEachPos((x, y, z) -> {
+            blocks[x][y][z] = refs.get(blockArray[count.get()]);
+
+            count.incrementAndGet();
+
+            return true;
+        });
     }
 
     public void writeToNBT(NBTTagCompound compound, boolean array) {
@@ -402,18 +421,18 @@ public abstract class AbstractTemplate {
         }
 
         ///block array
-        int[] blockArray = new int[xSize * ySize * zSize];
+        int[] blockArray = new int[getIndexSize()];
 
-        int count = 0;
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    DictionaryEntry componentInfo = blocks[x][y][z];
-                    blockArray[count] = componentInfo == null ? -1 : componentInfo.globalID;
-                    count++;
-                }
-            }
-        }
+        AtomicInteger count = new AtomicInteger(0);
+
+        forEachPos((x, y, z) -> {
+            DictionaryEntry componentInfo = blocks[x][y][z];
+            blockArray[count.get()] = componentInfo == null ? -1 : componentInfo.globalID;
+            count.incrementAndGet();
+
+            return true;
+        });
+
         compound.setIntArray("blocks", blockArray);
 
     }
@@ -431,89 +450,44 @@ public abstract class AbstractTemplate {
 
     public void readPayloadFromBuf(ByteBuf buf, int start, int end) {
         if (start == 0) { //first payload packet only
-            blocks = new DictionaryEntry[xSize][ySize][zSize];
+            blocks = initializeBlockData();
         }
+        AtomicInteger index = new AtomicInteger(0);
 
-        int index = 0;
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    if (start <= index && index < end) {
-                        short id = buf.readShort();
+        forEachPos((x, y, z) -> {
+            if (start <= index.get() && index.get() < end) {
+                short id = buf.readShort();
 
-                        DictionaryEntry entry = GlobalDictionary.getComponentInfoFromID(id);
+                DictionaryEntry entry = GlobalDictionary.getComponentInfoFromID(id);
 
-                        if (entry == null) {
-                            refs.get((int) id);
-                        }
-
-                        blocks[x][y][z] = entry;
-                    }
-                    index++;
+                if (entry == null) {
+                    refs.get((int) id);
                 }
+
+                blocks[x][y][z] = entry;
             }
-        }
+
+            return index.incrementAndGet() < end;
+        });
+
+    }
+
+    protected DictionaryEntry[][][] initializeBlockData() {
+        return new DictionaryEntry[xSize][ySize][zSize];
     }
 
     public void writePayloadToBuf(ByteBuf buf, int start, int end) {
-        int index = 0;
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    if (start <= index && index < end) {
-                        DictionaryEntry componentInfo = blocks[x][y][z];
+        AtomicInteger index = new AtomicInteger(0);
 
-                        buf.writeShort(componentInfo == null ? -1 : componentInfo.globalID);
-                    }
-                    index++;
-                }
+        forEachPos((x, y, z) -> {
+            if (start <= index.get() && index.get() < end) {
+                DictionaryEntry componentInfo = blocks[x][y][z];
+
+                buf.writeShort(componentInfo == null ? -1 : componentInfo.globalID);
             }
-        }
+
+            return index.incrementAndGet() < end;
+        });
     }
 
-    private Map<Integer, DictionaryEntry> readRefList(NBTTagCompound compound) {
-        NBTTagList refs = compound.getTagList("refs", Constants.NBT.TAG_COMPOUND);
-
-        Map<Integer, DictionaryEntry> refList = new HashMap<>();
-
-        for (int i = 0; i < refs.tagCount(); i++) {
-            DictionaryEntry entry = DictionaryEntry.readFromNBTSafely(
-                    refs.getCompoundTagAt(i)
-            );
-
-            if (entry != null) {
-                refList.put(entry.globalID, entry);
-            }
-        }
-
-        return refList;
-    }
-
-    private NBTTagCompound buildRefList() {
-        NBTTagList refList = new NBTTagList();
-
-        Map<Integer, DictionaryEntry> refs = new HashMap<>();
-
-        for (int x = 0; x < xSize; x++) {
-            for (int y = 0; y < ySize; y++) {
-                for (int z = 0; z < zSize; z++) {
-                    DictionaryEntry entry = blocks[x][y][z];
-                    if (entry != null) {
-                        refs.put(entry.globalID, entry);
-                    }
-                }
-            }
-        }
-
-        for (DictionaryEntry entry : refs.values()) {
-            NBTTagCompound ref = entry.writeToNBT(new NBTTagCompound());
-            refList.appendTag(ref);
-        }
-
-        NBTTagCompound compound = new NBTTagCompound();
-
-        compound.setTag("refs", refList);
-
-        return compound;
-    }
 }
