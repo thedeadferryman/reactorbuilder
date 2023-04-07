@@ -5,15 +5,16 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import sonar.reactorbuilder.common.ReactorBuilderTileEntity;
+import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
-import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
 import sonar.reactorbuilder.common.reactors.TemplateType;
 import sonar.reactorbuilder.util.Translate;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 
+@Deprecated
 public class OverhaulTurbine extends AbstractTemplate {
 
     public static DictionaryEntry casingSolid = GlobalDictionary.getComponentInfo("turbine_casing");
@@ -32,7 +33,7 @@ public class OverhaulTurbine extends AbstractTemplate {
     }
 
     public OverhaulTurbine(String fileName, int diameter, int length, int bearingDiameter) {
-        super(fileName, diameter, diameter, length+2);
+        super(fileName, diameter, diameter, length + 2);
         this.bearingDiameter = bearingDiameter;
     }
 
@@ -47,28 +48,29 @@ public class OverhaulTurbine extends AbstractTemplate {
     @Nullable
     @Override
     public DictionaryEntry getComponent(int x, int y, int z) {
-        if(isComponent(x, y, z)){
+        if (isComponent(x, y, z)) {
             return blocks[x][y][z];
-        }else if(isCasing(x, y, z)){
+        } else if (isCasing(x, y, z)) {
             return isCasingGlass(x, y, z) ? casingGlass : casingSolid;
         }
         return null;
     }
 
-    public void setCoilExact(DictionaryEntry entry, int x, int y, int z){
-        if(z == 1){
-            z = zSize-1;
+    public void setCoilExact(DictionaryEntry entry, int x, int y, int z) {
+        if (z == 1) {
+            z = zSize - 1;
         }
         setComponentInfo(entry, x, y, z);
     }
 
-    public void setBladeExact(DictionaryEntry entry, int z){
-        int minD = xSize/2-bearingDiameter/2;
-        int maxD = xSize-minD-1;
-        for(int X = 0; X<xSize; X++){
-            for(int Y = 0; Y<ySize; Y++){
-                if(X<minD||Y<minD||X>maxD||Y>maxD){
-                    if(X<minD&&Y<minD||X<minD&&Y>maxD||X>maxD&&Y<minD||X>maxD&&Y>maxD)continue;
+    public void setBladeExact(DictionaryEntry entry, int z) {
+        int minD = xSize / 2 - bearingDiameter / 2;
+        int maxD = xSize - minD - 1;
+        for (int X = 0; X < xSize; X++) {
+            for (int Y = 0; Y < ySize; Y++) {
+                if (X < minD || Y < minD || X > maxD || Y > maxD) {
+                    if (X < minD && Y < minD || X < minD && Y > maxD || X > maxD && Y < minD || X > maxD && Y > maxD)
+                        continue;
                     setComponentInfo(entry, X, Y, z);
                 }
             }
@@ -76,30 +78,30 @@ public class OverhaulTurbine extends AbstractTemplate {
     }
 
     @Override
-    public boolean isCasing(int x, int y, int z){
+    public boolean isCasing(int x, int y, int z) {
         return !isCoil(x, y, z) && !((-1 < x && x < xSize) && (-1 < y && y < ySize) && (-1 < z && z < zSize)) && (-1 < z && z < zSize);
     }
 
-    public boolean isBlade(int x, int y, int z){
-        if(!isComponent(x, y, z)){
+    public boolean isBlade(int x, int y, int z) {
+        if (!isComponent(x, y, z)) {
             return false;
         }
         return z != 0 && z != zSize - 1 && !isShaft(x, y, z);
     }
 
-    public boolean isShaft(int x, int y, int z){
-        if(!isComponent(x, y, z)){
+    public boolean isShaft(int x, int y, int z) {
+        if (!isComponent(x, y, z)) {
             return false;
         }
         DictionaryEntry component = blocks[x][y][z];
         return component != null && component.globalName.equals("rotor_shaft");
     }
 
-    public boolean isCoil(int x, int y, int z){
-        if(!isComponent(x, y, z)){
+    public boolean isCoil(int x, int y, int z) {
+        if (!isComponent(x, y, z)) {
             return false;
         }
-        return (z == 0 || z == zSize-1) && x < xSize && y < ySize;
+        return (z == 0 || z == zSize - 1) && x < xSize && y < ySize;
     }
 
 
@@ -117,7 +119,7 @@ public class OverhaulTurbine extends AbstractTemplate {
 
     @Override
     public int getBuildPassTotal(int buildPass) {
-        switch(buildPass){
+        switch (buildPass) {
             case 0:
                 return totalCoils;
             case 1:
@@ -132,7 +134,7 @@ public class OverhaulTurbine extends AbstractTemplate {
 
     @Override
     public boolean canPlaceThisPass(int buildPass, int x, int y, int z, DictionaryEntry info) {
-        switch (buildPass){
+        switch (buildPass) {
             case 0:
                 return isCoil(x, y, z);
             case 1:
@@ -149,19 +151,19 @@ public class OverhaulTurbine extends AbstractTemplate {
     //// POSITIONS \\\\
 
     @Override
-    public BlockPos getExtStart(){
-        if(casingStart != null){
+    public BlockPos getExtStart() {
+        if (casingStart != null) {
             return casingStart;
         }
         return casingStart = new BlockPos(-1, -1, 0);
     }
 
     @Override
-    public BlockPos getExtEnd(){
-        if(casingEnd != null){
+    public BlockPos getExtEnd() {
+        if (casingEnd != null) {
             return casingEnd;
         }
-        return casingEnd = new BlockPos(xSize, ySize, zSize -1);
+        return casingEnd = new BlockPos(xSize, ySize, zSize - 1);
     }
 
     @Override
@@ -191,33 +193,33 @@ public class OverhaulTurbine extends AbstractTemplate {
         totalBlades = 0;
         totalFaceCasing = 0;
         totalFrameCasing = 0;
-        for(int x = -1; x <= xSize; x ++){
-            for(int y = -1; y <= ySize; y ++){
-                for(int z = -1; z <= zSize; z ++){
-                    if(isComponent(x, y, z)){
+        for (int x = -1; x <= xSize; x++) {
+            for (int y = -1; y <= ySize; y++) {
+                for (int z = -1; z <= zSize; z++) {
+                    if (isComponent(x, y, z)) {
                         DictionaryEntry componentInfo = blocks[x][y][z];
-                        if(componentInfo != null){
-                            if(isCoil(x, y, z)){
+                        if (componentInfo != null) {
+                            if (isCoil(x, y, z)) {
                                 totalCoils++;
-                            }else if(isShaft(x, y, z)){
+                            } else if (isShaft(x, y, z)) {
                                 totalShafts++;
-                            }else if(isBlade(x, y, z)){
+                            } else if (isBlade(x, y, z)) {
                                 totalBlades++;
                             }
                         }
-                    }else if(isCasing(x, y, z)){
-                        if(isCasingGlass(x, y, z)){
+                    } else if (isCasing(x, y, z)) {
+                        if (isCasingGlass(x, y, z)) {
                             totalFaceCasing++;
-                        }else{
+                        } else {
                             totalFrameCasing++;
                         }
                     }
                 }
             }
         }
-        if(totalFrameCasing != 0)
+        if (totalFrameCasing != 0)
             required.put(casingSolid, totalFrameCasing);
-        if(totalFaceCasing != 0)
+        if (totalFaceCasing != 0)
             required.put(casingGlass, totalFaceCasing);
     }
 
@@ -225,7 +227,7 @@ public class OverhaulTurbine extends AbstractTemplate {
     public void getStats(Map<String, String> statsMap) {
         statsMap.put(Translate.TEMPLATE_FILE_NAME.t(), fileName);
         statsMap.put(Translate.TEMPLATE_REACTOR_TYPE.t(), getTemplateType().fileType);
-        statsMap.put(Translate.TEMPLATE_DIMENSIONS.t(), xSize + " x " + ySize + " x "  + zSize);
+        statsMap.put(Translate.TEMPLATE_DIMENSIONS.t(), xSize + " x " + ySize + " x " + zSize);
 
         statsMap.put(Translate.TEMPLATE_COMPONENTS.t(), String.valueOf(totalSolidComponents));
         statsMap.put(Translate.TEMPLATE_CASING.t(), String.valueOf(totalFrameCasing + totalFaceCasing));

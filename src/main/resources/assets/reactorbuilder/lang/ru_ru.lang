@@ -26,6 +26,11 @@ info.reactorbuilder.template.irradiator_filters=Фильтры облучате�
 info.reactorbuilder.template.components=Компоненты
 info.reactorbuilder.template.casing=Корпус
 info.reactorbuilder.template.edges=Грани
+info.reactorbuilder.template.shaft_diameter=Диаметр вала ротора
+info.reactorbuilder.template.turbine_diameter=Сечение турбины
+info.reactorbuilder.template.turbine_length=Длина турбины
+info.reactorbuilder.template.num_coils=Катушки
+
 
 //config
 info.reactorbuilder.general.casing_config=Конфигурация корпуса

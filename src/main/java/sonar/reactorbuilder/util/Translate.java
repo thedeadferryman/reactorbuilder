@@ -34,6 +34,10 @@ public enum Translate {
     TEMPLATE_COMPONENTS(true, "template.components"),
     TEMPLATE_CASING(true, "template.casing"),
     TEMPLATE_EDGES(true, "template.edges"),
+    TEMPLATE_SHAFT_DIAMETER(true, "template.shaft_diameter"),
+    TEMPLATE_TURBINE_DIAMETER(true, "template.turbine_diameter"),
+    TEMPLATE_TURBINE_LENGTH(true, "template.turbine_length"),
+    TEMPLATE_NUM_COILS(true, "template.num_coils"),
 
     //general
     CASING_CONFIG(true, "general.casing_config"),

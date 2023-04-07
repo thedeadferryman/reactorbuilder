@@ -26,6 +26,10 @@ info.reactorbuilder.template.irradiator_filters=辐照器过滤器
 info.reactorbuilder.template.components=材料
 info.reactorbuilder.template.casing=外壳
 info.reactorbuilder.template.edges=边缘
+info.reactorbuilder.template.shaft_diameter=Rotor shaft diameter
+info.reactorbuilder.template.turbine_diameter=Turbine diameter
+info.reactorbuilder.template.turbine_length=Turbine length
+info.reactorbuilder.template.num_coils=Coils
 
 //config
 info.reactorbuilder.general.casing_config=外壳配置

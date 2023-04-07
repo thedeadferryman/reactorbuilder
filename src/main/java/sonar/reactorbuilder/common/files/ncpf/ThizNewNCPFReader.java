@@ -120,7 +120,13 @@ public class ThizNewNCPFReader extends AbstractFileReader {
                         dims.getY(),
                         dims.getZ()
                 );
-
+            case OverhaulTurbine:
+                return new CasingAwareOverhaulTurbine(
+                        filename,
+                        dims.getX(),
+                        dims.getY(),
+                        dims.getZ()
+                );
             default:
                 return null;
         }

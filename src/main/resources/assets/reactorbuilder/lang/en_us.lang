@@ -26,6 +26,10 @@ info.reactorbuilder.template.irradiator_filters=Irradiator Filters
 info.reactorbuilder.template.components=Components
 info.reactorbuilder.template.casing=Casing
 info.reactorbuilder.template.edges=Edges
+info.reactorbuilder.template.shaft_diameter=Rotor shaft diameter
+info.reactorbuilder.template.turbine_diameter=Turbine diameter
+info.reactorbuilder.template.turbine_length=Turbine length
+info.reactorbuilder.template.num_coils=Coils
 
 //config
 info.reactorbuilder.general.casing_config=Casing config
