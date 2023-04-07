@@ -1,14 +1,18 @@
-package sonar.reactorbuilder.common.files;
+package sonar.reactorbuilder.common.files.ncpf;
 
 import com.google.common.collect.Lists;
+import net.minecraft.util.math.BlockPos;
 import simplelibrary.config2.Config;
 import simplelibrary.config2.ConfigList;
 import simplelibrary.config2.ConfigNumberList;
 import sonar.reactorbuilder.common.dictionary.DynamicItemDictionary;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
+import sonar.reactorbuilder.common.files.AbstractFileReader;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
+import sonar.reactorbuilder.common.reactors.templates.casingaware.CasingAwareTemplate;
 import sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul.CasingAwareOverhaulFissionSFR;
+import sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul.CasingAwareOverhaulTurbine;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -76,20 +80,56 @@ public class ThizNewNCPFReader extends AbstractFileReader {
                 continue;
             }
 
-            if (data.getInt("id") == 1) {
-                return readOverhaulSFRFrom(data, registry, filename);
+            StructureType type = parseTypeid(data.getInt("id"));
+
+            if (type == null) {
+                return null;
             }
+
+            CasingAwareTemplate template = initializeTemplate(data, filename, type);
+
+            return readStructure(template, data, registry);
         }
 
         return null;
     }
 
-    private AbstractTemplate readOverhaulSFRFrom(Config data, BlockRegistry blockRegistry, String filename) {
-        Dim3D dims = readDimensionsFrom(data);
+    private StructureType parseTypeid(int typeid) {
+        switch (typeid) {
+            case 1:
+                return StructureType.OverhaulSFR;
+            case 3:
+                return StructureType.OverhaulTurbine;
+            default:
+                return null;
+        }
+    }
+
+    private CasingAwareTemplate initializeTemplate(Config data, String filename, StructureType type) {
+        BlockPos dims = readDimensionsFrom(data);
 
         if (dims == null) {
             return null;
         }
+
+        switch (type) {
+            case OverhaulSFR:
+                return new CasingAwareOverhaulFissionSFR(
+                        filename,
+                        dims.getX(),
+                        dims.getY(),
+                        dims.getZ()
+                );
+
+            default:
+                return null;
+        }
+    }
+
+    private CasingAwareTemplate readStructure(
+            CasingAwareTemplate template,
+            Config data, BlockRegistry registry
+    ) {
 
         if (!data.hasProperty("blocks")) {
             return null;
@@ -97,18 +137,16 @@ public class ThizNewNCPFReader extends AbstractFileReader {
 
         ConfigNumberList blockMap = data.getConfigNumberList("blocks");
 
-        AbstractTemplate template = new CasingAwareOverhaulFissionSFR(
-                filename, Math.toIntExact(dims.x), Math.toIntExact(dims.y), Math.toIntExact(dims.z)
-        );
-
         int current = 0;
 
-        for (int x = 0; x <= (dims.x + 1); x++) {
-            for (int y = 0; y <= (dims.y + 1); y++) {
-                for (int z = 0; z <= (dims.z + 1); z++) {
+        for (int x = 0; x <= (template.xSize + 1); x++) {
+            for (int y = 0; y <= (template.ySize + 1); y++) {
+                for (int z = 0; z <= (template.zSize + 1); z++) {
                     int blockId = Math.toIntExact(blockMap.get(current));
 
-                    DictionaryEntry entry = blockRegistry.getEntryByIdAndType(blockId, StructureType.OverhaulSFR);
+                    DictionaryEntry entry = registry.getEntryByIdAndType(
+                            blockId, template.getStructureType()
+                    );
 
                     if (entry != null) {
                         template.setComponentInfo(entry, x, y, z);
@@ -122,14 +160,14 @@ public class ThizNewNCPFReader extends AbstractFileReader {
         return template;
     }
 
-    private Dim3D readDimensionsFrom(Config data) {
+    private BlockPos readDimensionsFrom(Config data) {
         if (!data.hasProperty("dimensions")) {
             return null;
         }
 
         ConfigNumberList dimensions = data.getConfigNumberList("dimensions");
 
-        return new Dim3D(
+        return new BlockPos(
                 dimensions.get(0),
                 dimensions.get(1),
                 dimensions.get(2)
@@ -248,7 +286,7 @@ public class ThizNewNCPFReader extends AbstractFileReader {
         DictionaryEntryType blockType = forceType;
 
         if (structureType.isOverhaul && blockType == null) {
-            blockType = overhaulSFRBlockTypeFromConfig(block, structureType);
+            blockType = overhaulBlockTypeFromConfig(block, structureType);
         }
 
         if (blockType == null) {
@@ -260,87 +298,43 @@ public class ThizNewNCPFReader extends AbstractFileReader {
         );
     }
 
-    private DictionaryEntryType overhaulSFRBlockTypeFromConfig(Config block, StructureType type) {
-        if (type != StructureType.OverhaulSFR) {
-            return null;
-        }
-
-        if (block.hasProperty("casing") && block.getBoolean("casing")) {
-            if (block.hasProperty("casingEdge") && block.getBoolean("casingEdge")) {
+    private DictionaryEntryType overhaulBlockTypeFromConfig(Config block, StructureType type) {
+        if (getFlag(block, "casing")) {
+            if (getFlag(block, "casingEdge")) {
                 return DictionaryEntryType.OVERHAUL_CASING_FRAME;
             }
             return DictionaryEntryType.OVERHAUL_CASING_FACE;
         }
 
+        if (type == StructureType.OverhaulTurbine) {
+            if (hasAnyOfFlags(block, "bearing", "inlet", "outlet")) {
+                return DictionaryEntryType.OVERHAUL_CASING_FACE;
+            }
+            if (getFlag(block, "shaft")) {
+                return DictionaryEntryType.OVERHAUL_TURBINE_SHAFT;
+            }
+            if (block.hasProperty("blade")) {
+                return DictionaryEntryType.OVERHAUL_TURBINE_BLADE;
+            }
+            if (block.hasProperty("coil")) {
+                return DictionaryEntryType.OVERHAUL_TURBINE_COIL;
+            }
+        }
+
         return DictionaryEntryType.OVERHAUL_COMPONENT;
     }
 
-    enum StructureType {
-        UnderhaulSFR(false),
-        OverhaulSFR(true),
-        OverhaulMSR(true),
-        OverhaulTurbine(true);
-
-        public boolean isOverhaul;
-
-        StructureType(boolean isOverhaul) {
-            this.isOverhaul = isOverhaul;
-        }
+    private boolean getFlag(Config config, String name) {
+        return config.hasProperty(name) && config.getBoolean(name);
     }
 
-    private static class BlockRegistry {
-        public List<DictionaryEntry> underhaulSFR = new ArrayList<>();
-        public List<DictionaryEntry> overhaulSFR = new ArrayList<>();
-        public List<DictionaryEntry> overhaulMSR = new ArrayList<>();
-        public List<DictionaryEntry> overhaulTurbine = new ArrayList<>();
-
-        void merge(BlockRegistry other) {
-            underhaulSFR.addAll(other.underhaulSFR);
-            overhaulSFR.addAll(other.overhaulSFR);
-            overhaulMSR.addAll(other.overhaulMSR);
-            overhaulTurbine.addAll(other.overhaulTurbine);
-        }
-
-        DictionaryEntry getEntryByIdAndType(int id, StructureType type) {
-            return getSafeFromList(
-                    pickList(type),
-                    id - 1
-            );
-        }
-
-        private List<DictionaryEntry> pickList(StructureType type) {
-            switch (type) {
-                case UnderhaulSFR:
-                    return underhaulSFR;
-                case OverhaulSFR:
-                    return overhaulSFR;
-                case OverhaulMSR:
-                    return overhaulMSR;
-                case OverhaulTurbine:
-                    return overhaulTurbine;
-                default:
-                    throw new RuntimeException("invalid list type");
+    private boolean hasAnyOfFlags(Config config, String... flags) {
+        for (String prop : flags) {
+            if (getFlag(config, prop)) {
+                return true;
             }
         }
 
-        private DictionaryEntry getSafeFromList(List<DictionaryEntry> list, int id) {
-            if (id >= list.size() || id < 0) {
-                return null;
-            }
-
-            return list.get(id);
-        }
-    }
-
-    private static class Dim3D {
-        public long x;
-        public long y;
-        public long z;
-
-        public Dim3D(long x, long y, long z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
+        return false;
     }
 }

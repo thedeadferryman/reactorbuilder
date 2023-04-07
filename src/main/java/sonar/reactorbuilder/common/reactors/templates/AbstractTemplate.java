@@ -154,6 +154,10 @@ public abstract class AbstractTemplate {
     }
 
 
+    public boolean isCasingAware() {
+        return false;
+    }
+
     //// CUSTOM PASS \\\\
 
     public boolean isEdge(int x, int y, int z) {
@@ -350,6 +354,10 @@ public abstract class AbstractTemplate {
 
     public int getIndexSize() {
         return xSize * ySize * zSize;
+    }
+
+    public BlockPos getRenderSize() {
+        return new BlockPos(xSize, ySize, zSize);
     }
 
     //// BUF - SAVE + LOAD \\\\

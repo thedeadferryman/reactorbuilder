@@ -18,7 +18,7 @@ import sonar.reactorbuilder.client.gui.GuiIconButton;
 import sonar.reactorbuilder.client.gui.GuiScroller;
 import sonar.reactorbuilder.common.files.HellrageJSONOverhaulReader;
 import sonar.reactorbuilder.common.files.HellrageJSONUnderhaulReader;
-import sonar.reactorbuilder.common.files.ThizNewNCPFReader;
+import sonar.reactorbuilder.common.files.ncpf.ThizNewNCPFReader;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.network.EnumSyncPacket;
 import sonar.reactorbuilder.network.PacketHandler;

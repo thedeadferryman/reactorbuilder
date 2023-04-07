@@ -1,15 +1,17 @@
 package sonar.reactorbuilder.common;
 
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
-import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
-import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
-import sonar.reactorbuilder.common.reactors.EnumCasingConfig;
-import sonar.reactorbuilder.common.reactors.templates.UnderhaulSFRTemplate;
 import sonar.reactorbuilder.client.renderer.TemplateRenderer;
+import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
+import sonar.reactorbuilder.common.reactors.EnumCasingConfig;
+import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
+import sonar.reactorbuilder.common.reactors.templates.UnderhaulSFRTemplate;
 import sonar.reactorbuilder.network.EnumSyncPacket;
 import sonar.reactorbuilder.network.PacketHandler;
 import sonar.reactorbuilder.network.PacketTileSync;
@@ -33,7 +35,7 @@ public abstract class ReactorBuilderGuiPages extends Gui {
         COMPONENTS(new ReactorBuilderGuiPages.ComponentsPage()),
         RENDER_REACTOR(new ReactorBuilderGuiPages.ReactorPage());
 
-        public ReactorBuilderGuiPages page;
+        public final ReactorBuilderGuiPages page;
 
         EnumPages(ReactorBuilderGuiPages page) {
             this.page = page;
@@ -93,8 +95,9 @@ public abstract class ReactorBuilderGuiPages extends Gui {
         public void onClicked(ReactorBuilderGui gui, float relativeX, float relativeY) {
             super.onClicked(gui, relativeX, relativeY);
 
-            /// case configuration
-            if (10 <= relativeY && relativeY < 28) {
+            int componentListStart = gui.builder.template.isCasingAware() ? 0 : 44;
+
+            if (!gui.builder.template.isCasingAware() && 10 <= relativeY && relativeY < 28) {
                 int config = (int) (relativeX - 6) / 21;
                 if (config < 7) {
 
@@ -114,7 +117,7 @@ public abstract class ReactorBuilderGuiPages extends Gui {
             }
 
             ///component highlighting
-            float itemStart = (44 + 14 + 12) * 0.75F;
+            float itemStart = (componentListStart + 14 + 12) * 0.75F;
             float itemHeight = 18 * 0.75F;
             if (itemStart <= relativeY) {
                 int itemPos = (int) ((relativeY - itemStart) / itemHeight);
@@ -146,30 +149,36 @@ public abstract class ReactorBuilderGuiPages extends Gui {
         public void renderPage(ReactorBuilderGui gui, float relativeX, float relativeY) {
             if (gui.builder.template != null) {
 
-                /// case configuration
                 RenderHelper.enableGUIStandardItemLighting();
                 ItemStack solid = gui.builder.template.getDefaultSolidCasing().getItemStack();
                 ItemStack glass = gui.builder.template.getDefaultGlassCasing().getItemStack();
 
-                for (int i = 0; i < 7; i++) {
-                    ItemStack stack = gui.builder.template.caseConfig[i] ? glass : solid;
-                    if (i == 6 && gui.builder.template instanceof UnderhaulSFRTemplate) {
-                        stack = ((UnderhaulSFRTemplate) gui.builder.template).edgeItem;
+                int totalY = 0;
+
+                if (!gui.builder.template.isCasingAware()) {
+                    for (int i = 0; i < 7; i++) {
+                        ItemStack stack = gui.builder.template.caseConfig[i] ? glass : solid;
+                        if (i == 6 && gui.builder.template instanceof UnderhaulSFRTemplate) {
+                            stack = ((UnderhaulSFRTemplate) gui.builder.template).edgeItem;
+                        }
+                        gui.getRenderItem().renderItemIntoGUI(stack, 6 + 21 * i, 14);
                     }
-                    gui.getRenderItem().renderItemIntoGUI(stack, 6 + 21 * i, 14);
+
+                    GlStateManager.scale(0.50, 0.50, 0.50);
+                    for (int i = 0; i < 7; i++) {
+                        gui.drawCenteredString(gui.getFont(), EnumCasingConfig.values()[i].name().toLowerCase(), (int) ((5.5 + (21 * i) + 9) / 0.5), (int) ((32) / 0.5), -1);
+                    }
+                    GlStateManager.scale(1 / 0.50, 1 / 0.50, 1 / 0.50);
+
                 }
 
-                GlStateManager.scale(0.50, 0.50, 0.50);
-                for (int i = 0; i < 7; i++) {
-                    gui.drawCenteredString(gui.getFont(), EnumCasingConfig.values()[i].name().toLowerCase(), (int) ((5.5 + (21 * i) + 9) / 0.5), (int) ((32) / 0.5), -1);
-                }
-                GlStateManager.scale(1 / 0.50, 1 / 0.50, 1 / 0.50);
-
-
-                ///component highlighting
                 GlStateManager.scale(0.75, 0.75, 0.75);
-                drawString(gui.getFont(), TextFormatting.BLUE + Translate.CASING_CONFIG.t() + ": ", 4, 4, -1);
-                int totalY = 44;
+
+                if (!gui.builder.template.isCasingAware()) {
+                    drawString(gui.getFont(), TextFormatting.BLUE + Translate.CASING_CONFIG.t() + ": ", 4, 4, -1);
+                    totalY = 44;
+                }
+
                 drawString(gui.getFont(), TextFormatting.BLUE + Translate.REQUIRED_COMPONENTS.t() + ": ", 4, totalY += 14, -1);
                 totalY += 12;
                 for (Map.Entry<DictionaryEntry, Integer> required : gui.builder.template.required.entrySet()) {
@@ -207,6 +216,7 @@ public abstract class ReactorBuilderGuiPages extends Gui {
             float rotation = 360F * (percentage / rotateTime);
 
             AbstractTemplate template = gui.builder.template;
+            BlockPos renderSize = template.getRenderSize();
 
             if (template == null) {
                 return;
@@ -226,13 +236,13 @@ public abstract class ReactorBuilderGuiPages extends Gui {
             GlStateManager.translate(0, 0, 100.0F + this.zLevel);
             GlStateManager.scale(1.0F, -1.0F, 1.0F);
             // GlStateManager.enableLighting();
-            float scaling = Math.min(((float) ReactorBuilderGui.WINDOW_WIDTH) / (template.xSize), ((float) ReactorBuilderGui.WINDOW_HEIGHT) / (template.ySize)) / 2;
+            float scaling = Math.min(((float) ReactorBuilderGui.WINDOW_WIDTH) / (renderSize.getX()), ((float) ReactorBuilderGui.WINDOW_HEIGHT) / (renderSize.getY())) / 2;
             GlStateManager.scale(scaling, scaling, scaling);
 
             GlStateManager.translate(((float) ReactorBuilderGui.WINDOW_WIDTH / scaling) / 2, -((float) ReactorBuilderGui.WINDOW_HEIGHT / scaling) / 2, 0.0F);
             GlStateManager.rotate(30, 1, 0, 0);
             GlStateManager.rotate(rotation, 0, 1, 0);
-            GlStateManager.translate(-template.xSize / 2D, -template.ySize / 2D, -template.zSize / 2D);
+            GlStateManager.translate(-renderSize.getX() / 2D, -renderSize.getY() / 2D, -renderSize.getZ() / 2D);
 
             TemplateRenderer.renderCachedTemplate(template);
 
@@ -248,25 +258,25 @@ public abstract class ReactorBuilderGuiPages extends Gui {
             GlStateManager.translate(0, ReactorBuilderGui.WINDOW_HEIGHT, 0);
             GlStateManager.translate(0, 0, 100.0F + this.zLevel); //WINDOW EDGE
 
-            float flatScaling = Math.min(ReactorBuilderGui.WINDOW_WIDTH / template.xSize, ReactorBuilderGui.WINDOW_HEIGHT / (template.zSize)) * 0.8F;
+            float flatScaling = Math.min(ReactorBuilderGui.WINDOW_WIDTH / renderSize.getX(), ReactorBuilderGui.WINDOW_HEIGHT / (renderSize.getZ())) * 0.8F;
             GlStateManager.scale(flatScaling, flatScaling, flatScaling);
 
             GlStateManager.translate((ReactorBuilderGui.WINDOW_WIDTH / flatScaling) / 2, (ReactorBuilderGui.WINDOW_HEIGHT / flatScaling) / 2, 0.0F);
-            GlStateManager.translate(-0.5 - (template.xSize) / 2, -0.5 - (template.zSize) / 2, 0.0F);
+            GlStateManager.translate(-0.5 - (renderSize.getX()) / 2, -0.5 - (renderSize.getZ()) / 2, 0.0F);
 
             TemplateRenderer.renderCachedLayers(template, ReactorBuilderGui.WINDOW_HEIGHT / flatScaling);
 
             //RenderHelper.disableStandardItemLighting();
             GlStateManager.popMatrix();
 
-            for (int i = 0; i < template.ySize; i++) {
+            for (int i = 0; i < renderSize.getY(); i++) {
                 gui.drawCenteredString(gui.getFont(), String.valueOf(i + 1), 30, 8 + 75 + 75 / 2 - 9 / 2 + 75 * i, -1);
             }
         }
 
         @Override
         public int getPageSize(ReactorBuilderGui gui) {
-            return 75 + (gui.builder.template == null ? 0 : gui.builder.template.ySize * 75);
+            return 75 + (gui.builder.template == null ? 0 : gui.builder.template.getRenderSize().getY() * 75);
         }
     }
 

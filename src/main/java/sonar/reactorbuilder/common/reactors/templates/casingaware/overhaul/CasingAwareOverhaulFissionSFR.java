@@ -2,44 +2,29 @@ package sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul;
 
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
+import sonar.reactorbuilder.common.files.ncpf.StructureType;
 import sonar.reactorbuilder.common.reactors.TemplateType;
-import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.common.reactors.templates.OverhaulFissionTemplate;
-import sonar.reactorbuilder.util.TernaryOperator;
+import sonar.reactorbuilder.common.reactors.templates.casingaware.CasingAwareTemplate;
 import sonar.reactorbuilder.util.Translate;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
-public class CasingAwareOverhaulFissionSFR extends AbstractTemplate {
+public class CasingAwareOverhaulFissionSFR extends CasingAwareTemplate {
     public CasingAwareOverhaulFissionSFR(String fileName, int xSize, int ySize, int zSize) {
-        super(fileName, xSize, ySize, zSize);
+        super(fileName, xSize, ySize, zSize, StructureType.OverhaulSFR);
     }
 
     public CasingAwareOverhaulFissionSFR() {
         super();
     }
 
-    @Override
-    protected DictionaryEntry[][][] initializeBlockData() {
-        return new DictionaryEntry[xSize + 2][ySize + 2][zSize + 2];
-    }
 
     @Override
     public TemplateType getTemplateType() {
         return TemplateType.CASINGAWARE_OVERHAUL_SFR;
     }
 
-    @Nullable
-    @Override
-    public DictionaryEntry getComponent(int x, int y, int z) {
-        return blocks[x + 1][y + 1][z + 1];
-    }
-
-    @Override
-    public int getIndexSize() {
-        return (xSize + 2) * (ySize + 2) * (zSize + 2);
-    }
 
     @Override
     public int getBuildPasses() {
@@ -89,6 +74,33 @@ public class CasingAwareOverhaulFissionSFR extends AbstractTemplate {
     }
 
     @Override
+    public void updateAdditionalInfo() {
+        super.updateAdditionalInfo();
+        totalFaceCasing = 0;
+        totalFrameCasing = 0;
+        totalSolidComponents = 0;
+
+        forEachPos((x, y, z) -> {
+            DictionaryEntry entry = blocks[x][y][z];
+
+            if (entry != null) {
+                switch (entry.entryType) {
+                    case OVERHAUL_CASING_FRAME:
+                        totalFrameCasing += 1;
+                        break;
+                    case OVERHAUL_CASING_FACE:
+                        totalFaceCasing += 1;
+                        break;
+                    case OVERHAUL_COMPONENT:
+                        totalSolidComponents += 1;
+                }
+            }
+
+            return true;
+        });
+    }
+
+    @Override
     public void getStats(Map<String, String> statsMap) {
         statsMap.put(Translate.TEMPLATE_FILE_NAME.t(), fileName);
         statsMap.put(Translate.TEMPLATE_REACTOR_TYPE.t(), getTemplateType().fileType);
@@ -96,20 +108,5 @@ public class CasingAwareOverhaulFissionSFR extends AbstractTemplate {
 
         statsMap.put(Translate.TEMPLATE_COMPONENTS.t(), String.valueOf(totalSolidComponents));
         statsMap.put(Translate.CASING_CONFIG.t(), String.valueOf(totalFrameCasing + totalFaceCasing + totalEdges));
-    }
-
-    public int getIndexFromInternalPos(int xPos, int yPos, int zPos) {
-        return (xPos * (ySize + 2) * (zSize + 2)) + (yPos * (zSize + 2)) + zPos;
-    }
-
-    @Override
-    public void forEachPos(TernaryOperator<Integer, Integer, Integer, Boolean> handler) {
-        for (int x = 0; x < (xSize + 2); x++) {
-            for (int y = 0; y < (ySize + 2); y++) {
-                for (int z = 0; z < (zSize + 2); z++) {
-                    handler.consume(x, y, z);
-                }
-            }
-        }
     }
 }

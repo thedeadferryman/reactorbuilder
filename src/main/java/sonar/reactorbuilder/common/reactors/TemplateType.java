@@ -5,18 +5,22 @@ import sonar.reactorbuilder.common.reactors.templates.OverhaulFissionTemplate;
 import sonar.reactorbuilder.common.reactors.templates.OverhaulTurbine;
 import sonar.reactorbuilder.common.reactors.templates.UnderhaulSFRTemplate;
 import sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul.CasingAwareOverhaulFissionSFR;
+import sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul.CasingAwareOverhaulTurbine;
 
 public enum TemplateType {
     UNDERHAUL_SFR(false, "Underhaul SFR", UnderhaulSFRTemplate::new),
     OVERHAUL_SFR(true, "Overhaul SFR", OverhaulFissionTemplate.SFR::new),
     OVERHAUL_MSR(true, "Overhaul MSR", OverhaulFissionTemplate.MSR::new),
+
+    @Deprecated
     OVERHAUL_TURBINE(true, "Overhaul Turbine", OverhaulTurbine::new),
 
-    CASINGAWARE_OVERHAUL_SFR(true, "Casing-Aware Overhaul SFR", CasingAwareOverhaulFissionSFR::new);
+    CASINGAWARE_OVERHAUL_SFR(true, "Overhaul SFR", CasingAwareOverhaulFissionSFR::new),
+    CASINGAWARE_OVERHAUL_TURBINE(true, "Overhaul Turbine", CasingAwareOverhaulTurbine::new);
 
-    public boolean overhaul;
-    public String fileType;
-    public IReactorProvider creator;
+    public final boolean overhaul;
+    public final String fileType;
+    public final IReactorProvider creator;
 
     TemplateType(boolean overhaul, String s, IReactorProvider creator) {
         this.overhaul = overhaul;

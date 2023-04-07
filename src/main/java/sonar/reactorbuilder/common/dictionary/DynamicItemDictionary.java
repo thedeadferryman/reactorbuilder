@@ -48,12 +48,6 @@ public class DynamicItemDictionary {
     }
 
     public static DictionaryEntry tryGetExistingEntry(MCUtils.ItemLocator locator) {
-        DictionaryEntry entry = GlobalDictionary.getComponentInfo(locator.itemId);
-
-        if (entry == null) {
-            return GlobalDictionary.getComponentInfo(locator.toString());
-        }
-
-        return entry;
+        return GlobalDictionary.getComponentInfo(locator.toString());
     }
 }

@@ -12,7 +12,9 @@ public enum DictionaryEntryType {
     OVERHAUL_LIQUID_FUEL(13, true, "overhaul liquid fuel"),
     OVERHAUL_CASING_FRAME(14, true, "casing block suitable for frame"),
     OVERHAUL_CASING_FACE(15, true, "casing block not suitable for frame"),
-    OVERHAUL_TURBINE_BLADE(16, true, "turbine blade types"),
+    OVERHAUL_TURBINE_BLADE(16, true, "turbine blade"),
+    OVERHAUL_TURBINE_SHAFT(17, true, "turbine shaft"),
+    OVERHAUL_TURBINE_COIL(18, true, "turbine coil"),
 
     IRRADIATOR_RECIPE(20, true, "irradiator recipes");
 
