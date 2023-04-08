@@ -73,7 +73,10 @@ processResources {
 curseforge {
     project {
         id = curseforge_id
-        apiKey = System.getenv("CURSE_API_KEY")
+        apiKey = System.getenv('CURSE_API_KEY')
+
+        changelog = file('CHANGELOG.md')
+        changelogType = 'markdown'
 
         releaseType = mod_version.matches(/.*[a-z]$/) ? 'beta' : 'release'
 
