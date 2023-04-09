@@ -9,7 +9,6 @@ import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import sonar.reactorbuilder.ReactorBuilder;
 import sonar.reactorbuilder.common.ReactorBuilderTileEntity;
-import sonar.reactorbuilder.common.dictionary.GlobalDictionary;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.reactors.TemplateType;
 import sonar.reactorbuilder.util.TernaryOperator;
@@ -466,11 +465,7 @@ public abstract class AbstractTemplate {
             if (start <= index.get() && index.get() < end) {
                 short id = buf.readShort();
 
-                DictionaryEntry entry = GlobalDictionary.getComponentInfoFromID(id);
-
-                if (entry == null) {
-                    refs.get((int) id);
-                }
+                DictionaryEntry entry = refs.get((int) id);
 
                 blocks[x][y][z] = entry;
             }
