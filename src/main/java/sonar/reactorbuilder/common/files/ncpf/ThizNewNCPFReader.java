@@ -322,7 +322,7 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             if (block.hasProperty("blade")) {
                 return DictionaryEntryType.OVERHAUL_TURBINE_BLADE;
             }
-            if (block.hasProperty("coil")) {
+            if (block.hasProperty("coil") || hasAnyOfFlags(block, "connector")) {
                 return DictionaryEntryType.OVERHAUL_TURBINE_COIL;
             }
         }
