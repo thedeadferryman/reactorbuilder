@@ -18,6 +18,7 @@ import sonar.reactorbuilder.client.gui.GuiIconButton;
 import sonar.reactorbuilder.client.gui.GuiScroller;
 import sonar.reactorbuilder.common.files.HellrageJSONOverhaulReader;
 import sonar.reactorbuilder.common.files.HellrageJSONUnderhaulReader;
+import sonar.reactorbuilder.common.files.ncpf.NCPF2Reader;
 import sonar.reactorbuilder.common.files.ncpf.ThizNewNCPFReader;
 import sonar.reactorbuilder.common.reactors.templates.AbstractTemplate;
 import sonar.reactorbuilder.network.EnumSyncPacket;
@@ -198,6 +199,15 @@ public class ReactorBuilderGui extends GuiContainer {
                                 newTemplate = ThizNewNCPFReader.INSTANCE.readTemplate(file);
                                 if (newTemplate == null) {
                                     fileError = ThizNewNCPFReader.INSTANCE.error;
+                                }
+                            } else {
+                                fileError = Translate.FEATURE_DISABLED.format("NCPF");
+                            }
+                        } else if (file.getName().endsWith("ncpf.json")) {
+                            if (RBConfig.allowThizNCPF) {
+                                newTemplate = NCPF2Reader.INSTANCE.readTemplate(file);
+                                if (newTemplate == null) {
+                                    fileError = NCPF2Reader.INSTANCE.error;
                                 }
                             } else {
                                 fileError = Translate.FEATURE_DISABLED.format("NCPF");

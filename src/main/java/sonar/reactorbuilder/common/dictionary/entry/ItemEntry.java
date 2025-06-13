@@ -14,6 +14,7 @@ import sonar.reactorbuilder.common.dictionary.DynamicItemDictionary;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemEntry extends DictionaryEntry {
 
@@ -98,5 +99,12 @@ public class ItemEntry extends DictionaryEntry {
     @Override
     public String getDisplayName() {
         return getDefaultItemStack().getDisplayName();
+    }
+
+    @Override
+    public String toString() {
+        String itemStacks = "[" + validStacks.stream().map(ItemStack::toString).collect(Collectors.joining(",")) + "]";
+
+        return entryType.toString() + "#" + globalName + " " + itemStacks;
     }
 }

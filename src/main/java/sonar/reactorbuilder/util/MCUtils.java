@@ -63,6 +63,10 @@ public class MCUtils {
             this.meta = meta;
         }
 
+        public ItemLocator withMeta(Integer meta) {
+            return new ItemLocator(modId, itemId, meta);
+        }
+
         @Override
         public String toString() {
             String baseName = this.modId + ":" + this.itemId;

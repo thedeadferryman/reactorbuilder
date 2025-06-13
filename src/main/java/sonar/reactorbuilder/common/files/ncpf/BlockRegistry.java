@@ -5,13 +5,13 @@ import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import java.util.ArrayList;
 import java.util.List;
 
-class BlockRegistry {
+public class BlockRegistry {
     public List<DictionaryEntry> underhaulSFR = new ArrayList<>();
     public List<DictionaryEntry> overhaulSFR = new ArrayList<>();
     public List<DictionaryEntry> overhaulMSR = new ArrayList<>();
     public List<DictionaryEntry> overhaulTurbine = new ArrayList<>();
 
-    void merge(BlockRegistry other) {
+    void append(BlockRegistry other) {
         underhaulSFR.addAll(other.underhaulSFR);
         overhaulSFR.addAll(other.overhaulSFR);
         overhaulMSR.addAll(other.overhaulMSR);
@@ -22,14 +22,14 @@ class BlockRegistry {
         pickList(type).add(entry);
     }
 
-    DictionaryEntry getEntryByIdAndType(int id, StructureType type) {
+    public DictionaryEntry getEntryByIdAndType(int id, StructureType type) {
         return getSafeFromList(
                 pickList(type),
                 id - 1
         );
     }
 
-    private List<DictionaryEntry> pickList(StructureType type) {
+    public List<DictionaryEntry> pickList(StructureType type) {
         switch (type) {
             case UnderhaulSFR:
                 return underhaulSFR;

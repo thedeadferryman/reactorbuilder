@@ -16,11 +16,14 @@ public enum DictionaryEntryType {
     OVERHAUL_TURBINE_SHAFT(17, true, "turbine shaft"),
     OVERHAUL_TURBINE_COIL(18, true, "turbine coil"),
 
-    IRRADIATOR_RECIPE(20, true, "irradiator recipes");
+    IRRADIATOR_RECIPE(20, true, "irradiator recipes"),
 
-    public byte id;
-    public boolean isOverhaul;
-    public String logName;
+    INVALID(-1, true, "invalid entry"),
+    ;
+
+    public final byte id;
+    public final boolean isOverhaul;
+    public final String logName;
 
     DictionaryEntryType(int id, boolean isOverhaul, String s) {
         this.id = (byte) id;

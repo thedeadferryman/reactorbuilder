@@ -1,5 +1,6 @@
 package sonar.reactorbuilder.common.reactors.templates.casingaware.overhaul;
 
+import sonar.reactorbuilder.ReactorBuilder;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntry;
 import sonar.reactorbuilder.common.dictionary.entry.DictionaryEntryType;
 import sonar.reactorbuilder.common.files.ncpf.StructureType;
@@ -82,6 +83,8 @@ public class CasingAwareOverhaulFissionSFR extends CasingAwareTemplate {
 
         forEachPos((x, y, z) -> {
             DictionaryEntry entry = blocks[x][y][z];
+
+            ReactorBuilder.logger.warn("at pos " + x + ":" + y + ":" + z + " = " + entry);
 
             if (entry != null) {
                 switch (entry.entryType) {
