@@ -230,7 +230,7 @@ public class ThizNewNCPFReader extends AbstractFileReader {
             for (Config addon : addons.<Config>iterable()) {
                 BlockRegistry addonBlocks = processConfig(addon);
 
-                blocks.merge(addonBlocks);
+                blocks.append(addonBlocks);
             }
         }
 

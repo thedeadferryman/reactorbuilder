@@ -13,6 +13,10 @@ public class DynamicItemDictionary {
     }
 
     public static DictionaryEntry getOrCreateEntry(DictionaryEntryType type, MCUtils.ItemLocator locator) {
+        return getOrCreateEntry(type, locator, null);
+    }
+
+    public static DictionaryEntry getOrCreateEntry(DictionaryEntryType type, MCUtils.ItemLocator locator, String globalName) {
         DictionaryEntry entry = tryGetExistingEntry(locator);
 
         if (entry != null) {
@@ -25,9 +29,15 @@ public class DynamicItemDictionary {
             return null;
         }
 
+        if (globalName == null) {
+            globalName = locator.toString();
+        }
+
 
         return GlobalDictionary.addDictionaryItemEntry(
-                type, locator.toString(), locator.modId, locator.itemId,
+                type,
+                globalName,
+                locator.modId, locator.itemId,
                 locator.meta
         );
     }
